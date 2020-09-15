@@ -20,7 +20,7 @@ class Ze07UartReader:
     
     
     def read(self):
-        ppm = 100000
+        ppm = 99999
         if b'\xff' == self.m_serial.read():
             self.m_stack.append(b'\xff')
             
