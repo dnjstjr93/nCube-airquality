@@ -64,11 +64,11 @@ if __name__ == "__main__":
     broker_ip = "localhost"
     port = 1883
 
-    dry_client = mqtt.Client()
-    dry_client.on_connect = on_connect
-    dry_client.on_disconnect = on_disconnect
-    dry_client.on_subscribe = on_subscribe
-    dry_client.on_message = on_message
-    dry_client.connect(broker_ip, port)
+    air_client = mqtt.Client()
+    air_client.on_connect = on_connect
+    air_client.on_disconnect = on_disconnect
+    air_client.on_subscribe = on_subscribe
+    air_client.on_message = on_message
+    air_client.connect(broker_ip, port)
 
-    dry_client.loop_forever()
+    air_client.loop_forever()
