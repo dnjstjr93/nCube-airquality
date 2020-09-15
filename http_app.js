@@ -38,7 +38,7 @@ global.my_mission_parent = '';
 global.my_mission_name = '';
 global.zero_parent_mission_name = '';
 global.zero_mission_name = '';
-// global.my_sortie_name = 'disarm';
+global.my_sortie_name = 'disarm';
 global.my_secure = 'off';
 
 const first_interval = 3000;
@@ -216,7 +216,6 @@ var air_info = {};
 
 function retrieve_my_cnt_name(callback) {
     sh_adn.rtvct('/Mobius/AIR/approval/'+conf.ae.name+'/la', 0, function (rsc, res_body, count) {
-        console.log(res_body);
         if(rsc == 2000) {
             air_info = res_body[Object.keys(res_body)[0]].con;
             // // console.log(drone_info);
@@ -231,56 +230,27 @@ function retrieve_my_cnt_name(callback) {
             info.name = air_info.air;
             conf.cnt.push(JSON.parse(JSON.stringify(info)));
 
-            info.parent = '/Mobius/' + air_info.space + '/Air_Data' + air_info.air;// /Mobius/UMAY/Air_Data/UMAY_airquality
-            info.name = 'Co';
-            conf.cnt.push(JSON.parse(JSON.stringify(info)));
-
-            info.parent = '/Mobius/' + air_info.space + '/Air_Data' + air_info.air;// /Mobius/UMAY/Air_Data/UMAY_airquality
-            info.name = 'Co2';
-            conf.cnt.push(JSON.parse(JSON.stringify(info)));
-
-            info.parent = '/Mobius/' + air_info.space + '/Air_Data' + air_info.air;// /Mobius/UMAY/Air_Data/UMAY_airquality
-            info.name = 'TVOC';
-            conf.cnt.push(JSON.parse(JSON.stringify(info)));
-
-            info.parent = '/Mobius/' + air_info.space + '/Air_Data' + air_info.air;// /Mobius/UMAY/Air_Data/UMAY_airquality
-            info.name = 'PM';
-            conf.cnt.push(JSON.parse(JSON.stringify(info)));
-
-            info.parent = '/Mobius/' + air_info.space + '/Air_Data' + air_info.air;// /Mobius/UMAY/Air_Data/UMAY_airquality
-            info.name = 'HCHO';
-            conf.cnt.push(JSON.parse(JSON.stringify(info)));
-
-            zero_parent_mission_name = info.parent + '/' + info.name;
-            zero_mission_name = zero_parent_mission_name + '/' + my_sortie_name;
-
-            info.parent = zero_parent_mission_name;
+            my_parent_cnt_name = info.parent + '/' + info.name; // /Mobius/UMAY/Air_Data/UMAY_airquality/
+            my_cnt_name = my_parent_cnt_name + '/' + my_sortie_name; // /Mobius/UMAY/Air_Data/UMAY_airquality/disarm
+            
+            info.parent = my_parent_cnt_name;
             info.name = my_sortie_name;
             conf.cnt.push(JSON.parse(JSON.stringify(info)));
 
-            if(air_info.hasOwnProperty('loadcell_factor')) {
-                dry_data_block.loadcell_factor = parseFloat(parseFloat(air_info.loadcell_factor.toString()).toFixed(1));
-            }
+            info.parent = '/Mobius/' + air_info.space;// /Mobius/UMAY
+            info.name = 'Mission_Data';
+            conf.cnt.push(JSON.parse(JSON.stringify(info)));
 
-            if(air_info.hasOwnProperty('cum_ref_weight')) {
-                dry_data_block.cum_ref_weight = parseFloat(parseFloat(air_info.cum_ref_weight.toString()).toFixed(1));
-            }
+            info.parent = '/Mobius/' + air_info.space + '/Mission_Data';// /Mobius/UMAY/Mission_Data
+            info.name = air_info.air;
+            conf.cnt.push(JSON.parse(JSON.stringify(info)));
 
-            if(air_info.hasOwnProperty('loadcell_ref_weight')) {
-                dry_data_block.loadcell_ref_weight = parseFloat(parseFloat(air_info.loadcell_ref_weight.toString()).toFixed(1));
-            }
+            air_parent_mission_name = info.parent + '/' + info.name;// /Mobius/UMAY/Mission_Data/UMAY_airquality
+            air_mission_name = air_parent_mission_name + '/' + my_sortie_name;// /Mobius/UMAY/Mission_Data/UMAY_airquality/disarm
 
-            if(air_info.hasOwnProperty('ref_external_temp')) {
-                dry_data_block.ref_external_temp = parseFloat(parseFloat(air_info.ref_external_temp.toString()).toFixed(1));
-            }
-
-            if(air_info.hasOwnProperty('ref_internal_temp')) {
-                dry_data_block.ref_internal_temp = parseFloat(parseFloat(air_info.ref_internal_temp.toString()).toFixed(1));
-            }
-
-            if(air_info.hasOwnProperty('ref_elapsed_time')) {
-                dry_data_block.ref_elapsed_time = parseFloat(parseFloat(air_info.ref_elapsed_time.toString()).toFixed(1));
-            }
+            info.parent = air_parent_mission_name;
+            info.name = my_sortie_name;
+            conf.cnt.push(JSON.parse(JSON.stringify(info)));
 
             MQTT_SUBSCRIPTION_ENABLE = 1;
             sh_state = 'crtct';
@@ -412,14 +382,8 @@ function http_watchdog() {
         });
     }
     else if (sh_state === 'crtci') {
-        send_to_Mobius(my_cnt_name, dry_data_block);
+        send_to_Mobius(my_cnt_name, air_data_block);
 
-        if(dry_data_block.state == 'HEAT') {
-            data_interval = 10000;
-        }
-        else {
-            data_interval = 30000;
-        }
         setTimeout(http_watchdog, data_interval);
     }
 }
@@ -503,22 +467,17 @@ function mqtt_connect(serverip, noti_topic) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var dry_mqtt_client = null;
-var dry_noti_topic = [];
+var air_mqtt_client = null;
+var air_noti_topic = [];
 
-dry_noti_topic.push('/res_zero_point');
-dry_noti_topic.push('/res_calc_factor');
-dry_noti_topic.push('/res_internal_temp');
-dry_noti_topic.push('/res_input_door');
-dry_noti_topic.push('/res_output_door');
-dry_noti_topic.push('/res_safe_door');
-dry_noti_topic.push('/res_weight');
-dry_noti_topic.push('/res_operation_mode');
-dry_noti_topic.push('/res_debug_mode');
-dry_noti_topic.push('/res_start_btn');
+air_noti_topic.push('/co');
+air_noti_topic.push('/co2');
+air_noti_topic.push('/hcho');
+air_noti_topic.push('/pm');
+air_noti_topic.push('/tvoc');
 
-function dry_mqtt_connect(broker_ip, port, noti_topic) {
-    if(dry_mqtt_client == null) {
+function air_mqtt_connect(broker_ip, port, noti_topic) {
+    if(air_mqtt_client == null) {
         if (conf.usesecure === 'disable') {
             var connectOptions = {
                 host: broker_ip,
@@ -554,20 +513,20 @@ function dry_mqtt_connect(broker_ip, port, noti_topic) {
             };
         }
 
-        dry_mqtt_client = mqtt.connect(connectOptions);
+        air_mqtt_client = mqtt.connect(connectOptions);
     }
 
-    dry_mqtt_client.on('connect', function () {
+    air_mqtt_client.on('connect', function () {
         console.log('msw_mqtt connected to ' + broker_ip);
         for(var idx in noti_topic) {
             if(noti_topic.hasOwnProperty(idx)) {
-                dry_mqtt_client.subscribe(noti_topic[idx]);
+                air_mqtt_client.subscribe(noti_topic[idx]);
                 console.log('[msw_mqtt_connect] noti_topic[' + idx + ']: ' + noti_topic[idx]);
             }
         }
     });
 
-    dry_mqtt_client.on('message', function (topic, message) {
+    air_mqtt_client.on('message', function (topic, message) {
         try {
             var msg_obj = JSON.parse(message.toString());
         }
@@ -582,557 +541,532 @@ function dry_mqtt_connect(broker_ip, port, noti_topic) {
         }
     });
 
-    dry_mqtt_client.on('error', function (err) {
+    air_mqtt_client.on('error', function (err) {
         console.log(err.message);
     });
 }
 
-dry_mqtt_connect('localhost', 1883, dry_noti_topic);
+air_mqtt_connect('localhost', 1883, air_noti_topic);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-var dry_data_block = {};
-dry_data_block.state = 'INPUT';
-dry_data_block.ref_internal_temp = 80.0;
-dry_data_block.ref_external_temp = 280.0;
-dry_data_block.ref_elapsed_time = 5.0;
-dry_data_block.internal_temp = 0.0;
-dry_data_block.external_temp = 0.0;
-dry_data_block.cur_weight = -0.1;
-dry_data_block.ref_weight = 0.0;
-dry_data_block.pre_weight = 0.0;
-dry_data_block.tar_weight1 = 0.0;
-dry_data_block.tar_weight2 = 0.0;
-dry_data_block.tar_weight3 = 0.0;
-dry_data_block.cum_weight = 0.0;
-dry_data_block.cum_ref_weight = 3000;
-dry_data_block.input_door = 0;
-dry_data_block.output_door = 0;
-dry_data_block.safe_door = 0;
-dry_data_block.operation_mode = 0;
-dry_data_block.debug_mode = 0;
-dry_data_block.start_btn = 0;
-dry_data_block.stirrer_mode = 0;
-dry_data_block.elapsed_time = 0;
-dry_data_block.debug_message = 'INPUT';
-dry_data_block.loadcell_factor = 1841;
-dry_data_block.loadcell_ref_weight = 20;
-dry_data_block.correlation_value = 4.6;
-dry_data_block.my_sortie_name = 'disarm';
+var air_data_block = {};
+air_data_block.co = 0.0; // 0.5ppm
+air_data_block.co2 = 0.0; // 675 ppm
+air_data_block.tvoc = 0.0; // CO2: 400 PPM, TVOC: 0 PPB
+air_data_block.mass_pm1_0 = 0.0;
+air_data_block.mass_pm2_5 = 0.0;
+air_data_block.mass_pm4_0 = 0.0;
+air_data_block.mass_pm10_0 = 0.0;
+air_data_block.number_pm0_5 = 0.0;
+air_data_block.number_pm1_0 = 0.0;
+air_data_block.number_pm2_5 = 0.0;
+air_data_block.number_pm4_0 = 0.0;
+air_data_block.number_pm10_0 = 0.0;
+air_data_block.typical_particle_size = 0.0;
+/*
+Mass Concentration PM1.0:  6.3 ug/m^3
+Mass Concentration PM2.5:  11.7 ug/m^3
+Mass Concentration PM4.0:  15.5 ug/m^3
+Mass Concentration PM10:  16.5 ug/m^3
+Number Concentration PM0.5:  30.8 #/cm^3
+Number Concentration PM1.0:  44.0 #/cm^3
+Number Concentration PM2.5:  49.2 #/cm^3
+Number Concentration PM4.0:  49.9 #/cm^3
+Number Concentration PM10:  50.0 #/cm^3
+Typical Particle Size:  0.7 um
+*/
 
 try {
-    Object.assign(dry_data_block, JSON.parse(fs.readFileSync('ddb.json', 'utf8')));
+    Object.assign(air_data_block, JSON.parse(fs.readFileSync('ddb.json', 'utf8')));
 }
 catch (e) {
-    fs.writeFileSync('ddb.json', JSON.stringify(dry_data_block, null, 4), 'utf8');
+    fs.writeFileSync('ddb.json', JSON.stringify(air_data_block, null, 4), 'utf8');
 }
-
-
-var pre_state = 'None';
-var pre_cur_weight = 9999;
-var pre_loadcell_factor = -1.0;
-var pre_input_door = -1;
-var pre_output_door = -1;
-var pre_safe_door = -1;
-var pre_internal_temp = -1.0;
-var pre_elapsed_time = -1;
-var pre_debug_message = '';
-
-
-dry_data_block.input_door = 0;
-dry_data_block.output_door = 0;
-dry_data_block.safe_door = 0;
-
-dry_data_block.state = 'INPUT';
-pre_state = '';
-
-dry_data_block.debug_message = '                  ';
-pre_debug_message = '';
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // function of food dryer machine controling, sensing
 
-function print_lcd_state() {
-    if(dry_mqtt_client != null) {
-        if (pre_state != dry_data_block.state) {
-            pre_state = dry_data_block.state;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.state;
-
-            dry_mqtt_client.publish('/print_lcd_state', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_loadcell_factor() {
-    if(dry_mqtt_client != null) {
-        if (pre_loadcell_factor != dry_data_block.loadcell_factor) {
-            pre_loadcell_factor = dry_data_block.loadcell_factor;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.loadcell_factor;
-            msg_obj.val2 = dry_data_block.loadcell_ref_weight;
-            dry_mqtt_client.publish('/print_lcd_loadcell_factor', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_input_door() {
-    if(dry_mqtt_client != null) {
-        if (pre_input_door != dry_data_block.input_door) {
-            pre_input_door = dry_data_block.input_door;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.input_door;
-            dry_mqtt_client.publish('/print_lcd_input_door', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_output_door() {
-    if(dry_mqtt_client != null) {
-        if (pre_output_door != dry_data_block.output_door) {
-            pre_output_door = dry_data_block.output_door;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.output_door;
-            dry_mqtt_client.publish('/print_lcd_output_door', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_safe_door() {
-    if(dry_mqtt_client != null) {
-        if (pre_safe_door != dry_data_block.safe_door) {
-            pre_safe_door = dry_data_block.safe_door;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.safe_door;
-            dry_mqtt_client.publish('/print_lcd_safe_door', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_elapsed_time() {
-    if(dry_mqtt_client != null) {
-        if (pre_elapsed_time != dry_data_block.elapsed_time) {
-            pre_elapsed_time = dry_data_block.elapsed_time;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.elapsed_time;
-            dry_mqtt_client.publish('/print_lcd_elapsed_time', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function print_lcd_debug_message() {
-    if(dry_mqtt_client != null) {
-        if (pre_debug_message != dry_data_block.debug_message) {
-            pre_debug_message = dry_data_block.debug_message;
-
-            var msg_obj = {};
-            msg_obj.val = dry_data_block.debug_message;
-            dry_mqtt_client.publish('/print_lcd_debug_message', JSON.stringify(msg_obj));
-        }
-    }
-}
-
-function set_solenoid(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_solenoid', JSON.stringify(msg_obj));
-    }
-}
-
-function set_fan(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_fan', JSON.stringify(msg_obj));
-    }
-}
-
-function set_heater(command1, command2, command3) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command1;
-        //msg_obj.val2 = command2;
-        //msg_obj.val3 = command3;
-        dry_mqtt_client.publish('/set_heater', JSON.stringify(msg_obj));
-    }
-}
-
-function set_stirrer(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_stirrer', JSON.stringify(msg_obj));
-    }
-}
-
-function set_lift(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_lift', JSON.stringify(msg_obj));
-    }
-}
-
-function set_crusher(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_crusher', JSON.stringify(msg_obj));
-    }
-}
-
-function set_cleaning_pump(command) {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = command;
-        dry_mqtt_client.publish('/set_cleaning_pump', JSON.stringify(msg_obj));
-    }
-}
-
-function set_buzzer() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/set_buzzer', JSON.stringify(msg_obj));
-    }
-}
-
-function req_zero_point() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = dry_data_block.loadcell_ref_weight;
-        //console.log(dry_data_block.loadcell_ref_weight)
-        dry_mqtt_client.publish('/req_zero_point', JSON.stringify(msg_obj));
-    }
-}
-
-function req_calc_factor() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = dry_data_block.loadcell_factor;
-        dry_mqtt_client.publish('/req_calc_factor', JSON.stringify(msg_obj));
-    }
-}
-
-var internal_temp_timer = null;
-function req_internal_temp() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-
-        if(dry_data_block.state == 'INIT') {
-        }
-        else if(dry_data_block.state == 'DEBUG') {
-        }
-        else {
-            msg_obj.val = 1;
-            dry_mqtt_client.publish('/req_internal_temp', JSON.stringify(msg_obj));
-            //console.log(msg_obj.val);
-        }
-
-        console.log('/req_internal_temp');
-
-        clearTimeout(internal_temp_timer);
-        internal_temp_timer = setTimeout(req_internal_temp, 5000);
-    }
-    else {
-        clearTimeout(internal_temp_timer);
-        internal_temp_timer = setTimeout(req_internal_temp, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var input_door_timer = null;
-function req_input_door() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_input_door', JSON.stringify(msg_obj));
-
-        clearTimeout(input_door_timer);
-        input_door_timer = setTimeout(req_input_door, 1000);
-    }
-    else {
-        clearTimeout(input_door_timer);
-        input_door_timer = setTimeout(req_input_door, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var output_door_timer = null;
-function req_output_door() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_output_door', JSON.stringify(msg_obj));
-
-        clearTimeout(output_door_timer);
-        output_door_timer = setTimeout(req_output_door, 1000);
-    }
-    else {
-        clearTimeout(output_door_timer);
-        output_door_timer = setTimeout(req_output_door, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var safe_door_timer = null;
-function req_safe_door() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_safe_door', JSON.stringify(msg_obj));
-
-        clearTimeout(safe_door_timer);
-        safe_door_timer = setTimeout(req_safe_door, 1000);
-    }
-    else {
-        clearTimeout(safe_door_timer);
-        safe_door_timer = setTimeout(req_safe_door, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var weight_timer = null;
-function req_weight() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-
-        if(dry_data_block.state == 'INIT') {
-        }
-        else if(dry_data_block.state == 'DEBUG') {
-        }
-        else {
-            msg_obj.val = 1;
-            dry_mqtt_client.publish('/req_weight', JSON.stringify(msg_obj));
-            console.log('/req_weight');
-        }
-
-        clearTimeout(weight_timer);
-        weight_timer = setTimeout(req_weight, 5000);
-    }
-    else {
-        clearTimeout(weight_timer);
-        weight_timer = setTimeout(req_weight, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var operation_mode_timer = null;
-function req_operation_mode() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_operation_mode', JSON.stringify(msg_obj));
-
-        clearTimeout(operation_mode_timer);
-        operation_mode_timer = setTimeout(req_operation_mode, 1000);
-    }
-    else {
-        clearTimeout(operation_mode_timer);
-        operation_mode_timer = setTimeout(req_operation_mode, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var debug_mode_timer = null;
-function req_debug_mode() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_debug_mode', JSON.stringify(msg_obj));
-        //console.log(msg_obj.val);
-
-        clearTimeout(debug_mode_timer);
-        debug_mode_timer = setTimeout(req_debug_mode, 1000);
-    }
-    else {
-        clearTimeout(debug_mode_timer);
-        debug_mode_timer = setTimeout(req_debug_mode, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-var start_btn_timer = null;
-function req_start_btn() {
-    if(dry_mqtt_client != null) {
-        var msg_obj = {};
-        msg_obj.val = 1;
-        dry_mqtt_client.publish('/req_start_btn', JSON.stringify(msg_obj));
-
-        clearTimeout(start_btn_timer);
-        start_btn_timer = setTimeout(req_start_btn, 1000);
-    }
-    else {
-        clearTimeout(start_btn_timer);
-        start_btn_timer = setTimeout(req_start_btn, 1000 + parseInt(Math.random() * 1000));
-    }
-}
-
-function res_zero_point(val) {
-    //dry_data_block.loadcell_factor = parseFloat(val.toString()).toFixed(1);
-
-    debug_mode_state = 'put_on';
-}
-
-function res_calc_factor(val, val2) {
-    dry_data_block.loadcell_factor = parseFloat(parseFloat(val.toString()).toFixed(1));
-    dry_data_block.correlation_value = parseFloat(parseFloat(val2.toString()).toFixed(2));
-
-    debug_mode_state = 'complete';
-}
-
-
-function res_internal_temp(val, val2) {
-    dry_data_block.internal_temp = parseFloat(parseFloat(val.toString()).toFixed(1));
-    dry_data_block.external_temp = parseFloat(parseFloat(val2.toString()).toFixed(1));
-
-    if (pre_internal_temp != dry_data_block.internal_temp) {
-        pre_internal_temp = dry_data_block.internal_temp;
+function get_co() {
+    if(air_mqtt_client != null) {
+        // if (pre_state != air_data_block.state) {
+        //     pre_state = air_data_block.state;
 
         var msg_obj = {};
-        msg_obj.val = dry_data_block.internal_temp;
-        msg_obj.val2 = dry_data_block.external_temp;
-        dry_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
-    }
+        msg_obj.val = air_data_block.co;
 
-    clearTimeout(internal_temp_timer);
-    internal_temp_timer = setTimeout(req_internal_temp, 2000 + parseInt(Math.random() * 100));
+        air_mqtt_client.publish('/co', JSON.stringify(msg_obj));
+        // }
+    }
 }
 
-var input_door_close_count = 0;
-var input_door_open_count = 0;
-var output_door_close_count = 0;
-var output_door_open_count = 0;
-var safe_door_close_count = 0;
-var safe_door_open_count = 0;
+// function print_lcd_loadcell_factor() {
+//     if(air_mqtt_client != null) {
+//         if (pre_loadcell_factor != dry_data_block.loadcell_factor) {
+//             pre_loadcell_factor = dry_data_block.loadcell_factor;
 
-const DOOR_OPEN = 1;
-const DOOR_CLOSE = 0;
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.loadcell_factor;
+//             msg_obj.val2 = dry_data_block.loadcell_ref_weight;
+//             air_mqtt_client.publish('/print_lcd_loadcell_factor', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-const BTN_PRESS = 0;
+// function print_lcd_input_door() {
+//     if(air_mqtt_client != null) {
+//         if (pre_input_door != dry_data_block.input_door) {
+//             pre_input_door = dry_data_block.input_door;
 
-function res_input_door(val) {
-    var l_dec_val = parseInt(val.toString());
-//     console.log('\nl_dec_val: ' + l_dec_val);
-    var input_door = 0;
-    var output_door = 0;
-    var safe_door = 0;
-    var start_btn = 0;
-    var debug_btn = 0;
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.input_door;
+//             air_mqtt_client.publish('/print_lcd_input_door', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-    if(l_dec_val&0x01) {
-        input_door = 1;
-    }
+// function print_lcd_output_door() {
+//     if(air_mqtt_client != null) {
+//         if (pre_output_door != dry_data_block.output_door) {
+//             pre_output_door = dry_data_block.output_door;
 
-    if(l_dec_val&0x02) {
-        output_door = 1;
-    }
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.output_door;
+//             air_mqtt_client.publish('/print_lcd_output_door', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-    if(l_dec_val&0x04) {
-        safe_door = 1;
-    }
+// function print_lcd_safe_door() {
+//     if(air_mqtt_client != null) {
+//         if (pre_safe_door != dry_data_block.safe_door) {
+//             pre_safe_door = dry_data_block.safe_door;
 
-    if(l_dec_val&0x08) {
-        start_btn = 1;
-    }
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.safe_door;
+//             air_mqtt_client.publish('/print_lcd_safe_door', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-    if(l_dec_val&0x10) {
-        debug_btn = 1;
-    }
+// function print_lcd_elapsed_time() {
+//     if(air_mqtt_client != null) {
+//         if (pre_elapsed_time != dry_data_block.elapsed_time) {
+//             pre_elapsed_time = dry_data_block.elapsed_time;
 
-    var status = input_door;
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.elapsed_time;
+//             air_mqtt_client.publish('/print_lcd_elapsed_time', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-    //console.log('in:' + status);
+// function print_lcd_debug_message() {
+//     if(air_mqtt_client != null) {
+//         if (pre_debug_message != dry_data_block.debug_message) {
+//             pre_debug_message = dry_data_block.debug_message;
 
-    if(status == DOOR_CLOSE) {
-        input_door_close_count++;
-        input_door_open_count = 0;
-        if(input_door_close_count > 2) {
-            input_door_close_count = 2;
+//             var msg_obj = {};
+//             msg_obj.val = dry_data_block.debug_message;
+//             air_mqtt_client.publish('/print_lcd_debug_message', JSON.stringify(msg_obj));
+//         }
+//     }
+// }
 
-            dry_data_block.input_door = DOOR_CLOSE;
-        }
-    }
-    else {
-        input_door_close_count = 0;
-        input_door_open_count++;
-        if(input_door_open_count > 2) {
-            input_door_open_count = 2;
+// function set_solenoid(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_solenoid', JSON.stringify(msg_obj));
+//     }
+// }
 
-            dry_data_block.input_door = DOOR_OPEN;
-        }
-    }
+// function set_fan(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_fan', JSON.stringify(msg_obj));
+//     }
+// }
 
-    status = output_door;
+// function set_heater(command1, command2, command3) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command1;
+//         //msg_obj.val2 = command2;
+//         //msg_obj.val3 = command3;
+//         air_mqtt_client.publish('/set_heater', JSON.stringify(msg_obj));
+//     }
+// }
 
-    //console.log('out:' + status);
+// function set_stirrer(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_stirrer', JSON.stringify(msg_obj));
+//     }
+// }
 
-    if(status == DOOR_CLOSE) {
-        output_door_close_count++;
-        output_door_open_count = 0;
-        if(output_door_close_count > 2) {
-            output_door_close_count = 2;
+// function set_lift(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_lift', JSON.stringify(msg_obj));
+//     }
+// }
 
-            if(dry_data_block.output_door == DOOR_OPEN) {
-                // dryer_event |= EVENT_OUTPUT_DOOR_CLOSE;
-            }
+// function set_crusher(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_crusher', JSON.stringify(msg_obj));
+//     }
+// }
 
-            dry_data_block.output_door = DOOR_CLOSE;
-        }
-    }
-    else {
-        output_door_close_count = 0;
-        output_door_open_count++;
-        if(output_door_open_count > 2) {
-            output_door_open_count = 2;
+// function set_cleaning_pump(command) {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = command;
+//         air_mqtt_client.publish('/set_cleaning_pump', JSON.stringify(msg_obj));
+//     }
+// }
 
-            if(dry_data_block.output_door == DOOR_CLOSE) {
-                // dryer_event |= EVENT_OUTPUT_DOOR_OPEN;
-            }
+// function set_buzzer() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/set_buzzer', JSON.stringify(msg_obj));
+//     }
+// }
 
-            dry_data_block.output_door = DOOR_OPEN;
-        }
-    }
+// function req_zero_point() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = dry_data_block.loadcell_ref_weight;
+//         //console.log(dry_data_block.loadcell_ref_weight)
+//         air_mqtt_client.publish('/req_zero_point', JSON.stringify(msg_obj));
+//     }
+// }
 
-    status = safe_door;
+// function req_calc_factor() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = dry_data_block.loadcell_factor;
+//         air_mqtt_client.publish('/req_calc_factor', JSON.stringify(msg_obj));
+//     }
+// }
 
-    //console.log('safe:' + status);
+// var internal_temp_timer = null;
+// function req_internal_temp() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
 
-    if(status == DOOR_CLOSE) {
-        safe_door_close_count++;
-        safe_door_open_count = 0;
-        if(safe_door_close_count > 2) {
-            safe_door_close_count = 2;
+//         if(dry_data_block.state == 'INIT') {
+//         }
+//         else if(dry_data_block.state == 'DEBUG') {
+//         }
+//         else {
+//             msg_obj.val = 1;
+//             air_mqtt_client.publish('/req_internal_temp', JSON.stringify(msg_obj));
+//             //console.log(msg_obj.val);
+//         }
 
-            if(dry_data_block.safe_door == DOOR_OPEN) {
-                dryer_event |= EVENT_SAFE_DOOR_CLOSE;
-            }
+//         console.log('/req_internal_temp');
 
-            dry_data_block.safe_door = DOOR_CLOSE;
-        }
-    }
-    else {
-        safe_door_close_count = 0;
-        safe_door_open_count++;
-        if(safe_door_open_count > 2) {
-            safe_door_open_count = 2;
+//         clearTimeout(internal_temp_timer);
+//         internal_temp_timer = setTimeout(req_internal_temp, 5000);
+//     }
+//     else {
+//         clearTimeout(internal_temp_timer);
+//         internal_temp_timer = setTimeout(req_internal_temp, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
 
-            if(dry_data_block.safe_door == DOOR_CLOSE) {
-                dryer_event |= EVENT_SAFE_DOOR_OPEN;
-            }
+// var input_door_timer = null;
+// function req_input_door() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_input_door', JSON.stringify(msg_obj));
 
-            dry_data_block.safe_door = DOOR_OPEN;
-        }
-    }
+//         clearTimeout(input_door_timer);
+//         input_door_timer = setTimeout(req_input_door, 1000);
+//     }
+//     else {
+//         clearTimeout(input_door_timer);
+//         input_door_timer = setTimeout(req_input_door, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
 
-    res_debug_mode(debug_btn);
-    res_start_btn(start_btn);
+// var output_door_timer = null;
+// function req_output_door() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_output_door', JSON.stringify(msg_obj));
 
-    //clearTimeout(input_door_timer);
-    //input_door_timer = setTimeout(req_input_door, 100 + parseInt(Math.random() * 100));
-    //console.log(dry_data_block.input_door);
-}
+//         clearTimeout(output_door_timer);
+//         output_door_timer = setTimeout(req_output_door, 1000);
+//     }
+//     else {
+//         clearTimeout(output_door_timer);
+//         output_door_timer = setTimeout(req_output_door, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// var safe_door_timer = null;
+// function req_safe_door() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_safe_door', JSON.stringify(msg_obj));
+
+//         clearTimeout(safe_door_timer);
+//         safe_door_timer = setTimeout(req_safe_door, 1000);
+//     }
+//     else {
+//         clearTimeout(safe_door_timer);
+//         safe_door_timer = setTimeout(req_safe_door, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// var weight_timer = null;
+// function req_weight() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+
+//         if(dry_data_block.state == 'INIT') {
+//         }
+//         else if(dry_data_block.state == 'DEBUG') {
+//         }
+//         else {
+//             msg_obj.val = 1;
+//             air_mqtt_client.publish('/req_weight', JSON.stringify(msg_obj));
+//             console.log('/req_weight');
+//         }
+
+//         clearTimeout(weight_timer);
+//         weight_timer = setTimeout(req_weight, 5000);
+//     }
+//     else {
+//         clearTimeout(weight_timer);
+//         weight_timer = setTimeout(req_weight, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// var operation_mode_timer = null;
+// function req_operation_mode() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_operation_mode', JSON.stringify(msg_obj));
+
+//         clearTimeout(operation_mode_timer);
+//         operation_mode_timer = setTimeout(req_operation_mode, 1000);
+//     }
+//     else {
+//         clearTimeout(operation_mode_timer);
+//         operation_mode_timer = setTimeout(req_operation_mode, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// var debug_mode_timer = null;
+// function req_debug_mode() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_debug_mode', JSON.stringify(msg_obj));
+//         //console.log(msg_obj.val);
+
+//         clearTimeout(debug_mode_timer);
+//         debug_mode_timer = setTimeout(req_debug_mode, 1000);
+//     }
+//     else {
+//         clearTimeout(debug_mode_timer);
+//         debug_mode_timer = setTimeout(req_debug_mode, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// var start_btn_timer = null;
+// function req_start_btn() {
+//     if(air_mqtt_client != null) {
+//         var msg_obj = {};
+//         msg_obj.val = 1;
+//         air_mqtt_client.publish('/req_start_btn', JSON.stringify(msg_obj));
+
+//         clearTimeout(start_btn_timer);
+//         start_btn_timer = setTimeout(req_start_btn, 1000);
+//     }
+//     else {
+//         clearTimeout(start_btn_timer);
+//         start_btn_timer = setTimeout(req_start_btn, 1000 + parseInt(Math.random() * 1000));
+//     }
+// }
+
+// function res_zero_point(val) {
+//     //dry_data_block.loadcell_factor = parseFloat(val.toString()).toFixed(1);
+
+//     debug_mode_state = 'put_on';
+// }
+
+// function res_calc_factor(val, val2) {
+//     dry_data_block.loadcell_factor = parseFloat(parseFloat(val.toString()).toFixed(1));
+//     dry_data_block.correlation_value = parseFloat(parseFloat(val2.toString()).toFixed(2));
+
+//     debug_mode_state = 'complete';
+// }
+
+
+// function res_internal_temp(val, val2) {
+//     dry_data_block.internal_temp = parseFloat(parseFloat(val.toString()).toFixed(1));
+//     dry_data_block.external_temp = parseFloat(parseFloat(val2.toString()).toFixed(1));
+
+//     if (pre_internal_temp != dry_data_block.internal_temp) {
+//         pre_internal_temp = dry_data_block.internal_temp;
+
+//         var msg_obj = {};
+//         msg_obj.val = dry_data_block.internal_temp;
+//         msg_obj.val2 = dry_data_block.external_temp;
+//         air_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
+//     }
+
+//     clearTimeout(internal_temp_timer);
+//     internal_temp_timer = setTimeout(req_internal_temp, 2000 + parseInt(Math.random() * 100));
+// }
+
+// var input_door_close_count = 0;
+// var input_door_open_count = 0;
+// var output_door_close_count = 0;
+// var output_door_open_count = 0;
+// var safe_door_close_count = 0;
+// var safe_door_open_count = 0;
+
+// const DOOR_OPEN = 1;
+// const DOOR_CLOSE = 0;
+
+// const BTN_PRESS = 0;
+
+// function res_input_door(val) {
+//     var l_dec_val = parseInt(val.toString());
+// //     console.log('\nl_dec_val: ' + l_dec_val);
+//     var input_door = 0;
+//     var output_door = 0;
+//     var safe_door = 0;
+//     var start_btn = 0;
+//     var debug_btn = 0;
+
+//     if(l_dec_val&0x01) {
+//         input_door = 1;
+//     }
+
+//     if(l_dec_val&0x02) {
+//         output_door = 1;
+//     }
+
+//     if(l_dec_val&0x04) {
+//         safe_door = 1;
+//     }
+
+//     if(l_dec_val&0x08) {
+//         start_btn = 1;
+//     }
+
+//     if(l_dec_val&0x10) {
+//         debug_btn = 1;
+//     }
+
+//     var status = input_door;
+
+//     //console.log('in:' + status);
+
+//     if(status == DOOR_CLOSE) {
+//         input_door_close_count++;
+//         input_door_open_count = 0;
+//         if(input_door_close_count > 2) {
+//             input_door_close_count = 2;
+
+//             dry_data_block.input_door = DOOR_CLOSE;
+//         }
+//     }
+//     else {
+//         input_door_close_count = 0;
+//         input_door_open_count++;
+//         if(input_door_open_count > 2) {
+//             input_door_open_count = 2;
+
+//             dry_data_block.input_door = DOOR_OPEN;
+//         }
+//     }
+
+//     status = output_door;
+
+//     //console.log('out:' + status);
+
+//     if(status == DOOR_CLOSE) {
+//         output_door_close_count++;
+//         output_door_open_count = 0;
+//         if(output_door_close_count > 2) {
+//             output_door_close_count = 2;
+
+//             if(dry_data_block.output_door == DOOR_OPEN) {
+//                 // dryer_event |= EVENT_OUTPUT_DOOR_CLOSE;
+//             }
+
+//             dry_data_block.output_door = DOOR_CLOSE;
+//         }
+//     }
+//     else {
+//         output_door_close_count = 0;
+//         output_door_open_count++;
+//         if(output_door_open_count > 2) {
+//             output_door_open_count = 2;
+
+//             if(dry_data_block.output_door == DOOR_CLOSE) {
+//                 // dryer_event |= EVENT_OUTPUT_DOOR_OPEN;
+//             }
+
+//             dry_data_block.output_door = DOOR_OPEN;
+//         }
+//     }
+
+//     status = safe_door;
+
+//     //console.log('safe:' + status);
+
+//     if(status == DOOR_CLOSE) {
+//         safe_door_close_count++;
+//         safe_door_open_count = 0;
+//         if(safe_door_close_count > 2) {
+//             safe_door_close_count = 2;
+
+//             if(dry_data_block.safe_door == DOOR_OPEN) {
+//                 dryer_event |= EVENT_SAFE_DOOR_CLOSE;
+//             }
+
+//             dry_data_block.safe_door = DOOR_CLOSE;
+//         }
+//     }
+//     else {
+//         safe_door_close_count = 0;
+//         safe_door_open_count++;
+//         if(safe_door_open_count > 2) {
+//             safe_door_open_count = 2;
+
+//             if(dry_data_block.safe_door == DOOR_CLOSE) {
+//                 dryer_event |= EVENT_SAFE_DOOR_OPEN;
+//             }
+
+//             dry_data_block.safe_door = DOOR_OPEN;
+//         }
+//     }
+
+//     res_debug_mode(debug_btn);
+//     res_start_btn(start_btn);
+
+//     //clearTimeout(input_door_timer);
+//     //input_door_timer = setTimeout(req_input_door, 100 + parseInt(Math.random() * 100));
+//     //console.log(dry_data_block.input_door);
+// }
 
 // var output_door_close_count = 0;
 // var output_door_open_count = 0;
@@ -1210,750 +1144,750 @@ function res_input_door(val) {
 //     //safe_door_timer = setTimeout(req_safe_door, 100 + parseInt(Math.random() * 100));
 // }
 
-function res_weight(val) {
-//     console.log('weight: ' + val);
-    dry_data_block.cur_weight = parseFloat(parseFloat(val.toString()).toFixed(1));
-    console.log("\r\ncur_weight: " + dry_data_block.cur_weight + "\r\n");
-    if (pre_cur_weight != dry_data_block.cur_weight) {
-        //console.log(dry_data_block.cur_weight);
-        pre_cur_weight = dry_data_block.cur_weight;
+// function res_weight(val) {
+// //     console.log('weight: ' + val);
+//     dry_data_block.cur_weight = parseFloat(parseFloat(val.toString()).toFixed(1));
+//     console.log("\r\ncur_weight: " + dry_data_block.cur_weight + "\r\n");
+//     if (pre_cur_weight != dry_data_block.cur_weight) {
+//         //console.log(dry_data_block.cur_weight);
+//         pre_cur_weight = dry_data_block.cur_weight;
 
 
-        var msg_obj = {};
-        msg_obj.val = dry_data_block.cur_weight;
-        msg_obj.val2 = dry_data_block.tar_weight3;
-        dry_mqtt_client.publish('/print_lcd_loadcell', JSON.stringify(msg_obj));
-    }
+//         var msg_obj = {};
+//         msg_obj.val = dry_data_block.cur_weight;
+//         msg_obj.val2 = dry_data_block.tar_weight3;
+//         air_mqtt_client.publish('/print_lcd_loadcell', JSON.stringify(msg_obj));
+//     }
 
-    clearTimeout(weight_timer);
-    weight_timer = setTimeout(req_weight, 1500 + parseInt(Math.random() * 100));
-}
+//     clearTimeout(weight_timer);
+//     weight_timer = setTimeout(req_weight, 1500 + parseInt(Math.random() * 100));
+// }
 
-var operation_press_count = 0;
-var operation_release_count = 0;
-function res_operation_mode(val) {
-    var status = parseInt(val.toString());
-    //console.log(status);
-    if(status == 0) {
-        operation_press_count++;
-        operation_release_count = 0;
-        if(operation_press_count > 2) {
-            operation_press_count = 2;
-            dry_data_block.operation_mode = 0;
-        }
-    }
-    else {
-        operation_press_count = 0;
-        operation_release_count++;
-        if(operation_release_count > 2) {
-            operation_release_count = 2;
-            dry_data_block.operation_mode = 1;
-        }
-    }
+// var operation_press_count = 0;
+// var operation_release_count = 0;
+// function res_operation_mode(val) {
+//     var status = parseInt(val.toString());
+//     //console.log(status);
+//     if(status == 0) {
+//         operation_press_count++;
+//         operation_release_count = 0;
+//         if(operation_press_count > 2) {
+//             operation_press_count = 2;
+//             dry_data_block.operation_mode = 0;
+//         }
+//     }
+//     else {
+//         operation_press_count = 0;
+//         operation_release_count++;
+//         if(operation_release_count > 2) {
+//             operation_release_count = 2;
+//             dry_data_block.operation_mode = 1;
+//         }
+//     }
 
-    //clearTimeout(operation_mode_timer);
-    //operation_mode_timer = setTimeout(req_operation_mode, 100 + parseInt(Math.random() * 100));
-}
+//     //clearTimeout(operation_mode_timer);
+//     //operation_mode_timer = setTimeout(req_operation_mode, 100 + parseInt(Math.random() * 100));
+// }
 
-var debug_press_count = 0;
-var debug_release_count = 0;
-var debug_once = 0;
-function res_debug_mode(val) {
-    var status = parseInt(val.toString());
+// var debug_press_count = 0;
+// var debug_release_count = 0;
+// var debug_once = 0;
+// function res_debug_mode(val) {
+//     var status = parseInt(val.toString());
 
-    if(status == BTN_PRESS) {
-        debug_press_count++;
-        debug_release_count = 0;
-        if(debug_press_count > 3) {
-            debug_press_count = 3;
-            dry_data_block.debug_mode = 1;
+//     if(status == BTN_PRESS) {
+//         debug_press_count++;
+//         debug_release_count = 0;
+//         if(debug_press_count > 3) {
+//             debug_press_count = 3;
+//             dry_data_block.debug_mode = 1;
 
-            if(debug_once == 1) {
-                debug_once = 0;
-                dryer_event_2 |= EVENT_DEBUG_BUTTON_PRESS;
-            }
-        }
-    }
-    else {
-        debug_press_count = 0;
-        debug_release_count++;
-        if(debug_release_count > 3) {
-            debug_release_count = 3;
-            dry_data_block.debug_mode = 0;
+//             if(debug_once == 1) {
+//                 debug_once = 0;
+//                 dryer_event_2 |= EVENT_DEBUG_BUTTON_PRESS;
+//             }
+//         }
+//     }
+//     else {
+//         debug_press_count = 0;
+//         debug_release_count++;
+//         if(debug_release_count > 3) {
+//             debug_release_count = 3;
+//             dry_data_block.debug_mode = 0;
 
-            if(debug_once == 0) {
-                debug_once = 1;
-                dryer_event_2 |= EVENT_DEBUG_BUTTON_RELEASE;
-            }
-        }
-    }
+//             if(debug_once == 0) {
+//                 debug_once = 1;
+//                 dryer_event_2 |= EVENT_DEBUG_BUTTON_RELEASE;
+//             }
+//         }
+//     }
 
-    //clearTimeout(debug_mode_timer);
-    //debug_mode_timer = setTimeout(req_debug_mode, 100 + parseInt(Math.random() * 100));
-}
+//     //clearTimeout(debug_mode_timer);
+//     //debug_mode_timer = setTimeout(req_debug_mode, 100 + parseInt(Math.random() * 100));
+// }
 
 
-var start_press_count = 0;
-var start_press_flag = 0;
-function res_start_btn(val) {
-    var status = parseInt(val.toString());
+// var start_press_count = 0;
+// var start_press_flag = 0;
+// function res_start_btn(val) {
+//     var status = parseInt(val.toString());
 
-    if(status == BTN_PRESS) {
-        start_press_count++;
-        if(4 < start_press_count && start_press_count <= 48) {
-            start_press_flag = 1;
-        }
+//     if(status == BTN_PRESS) {
+//         start_press_count++;
+//         if(4 < start_press_count && start_press_count <= 48) {
+//             start_press_flag = 1;
+//         }
 
-        else if(48 < start_press_count) {
-            start_press_flag = 2;
+//         else if(48 < start_press_count) {
+//             start_press_flag = 2;
             
-            // dry_data_block.debug_message = 'LONG BTN CLICK';
-        }
-    }
-    else {
-        if(start_press_flag == 1) {
-            dry_data_block.start_btn = 1;
+//             // dry_data_block.debug_message = 'LONG BTN CLICK';
+//         }
+//     }
+//     else {
+//         if(start_press_flag == 1) {
+//             dry_data_block.start_btn = 1;
 
-            dryer_event |= EVENT_START_BUTTON;
+//             dryer_event |= EVENT_START_BUTTON;
             
-            start_press_count = 0;
+//             start_press_count = 0;
 
-        }
-        else if(start_press_flag == 2) {
-            dry_data_block.start_btn = 2;
+//         }
+//         else if(start_press_flag == 2) {
+//             dry_data_block.start_btn = 2;
             
-            dry_data_block.debug_message = '              ';
+//             dry_data_block.debug_message = '              ';
 
-            dryer_event |= EVENT_START_BTN_LONG;
-            start_press_count = 0;
-        }
+//             dryer_event |= EVENT_START_BTN_LONG;
+//             start_press_count = 0;
+//         }
 
-        start_press_flag = 0;
-        start_press_count = 0;
-    }
+//         start_press_flag = 0;
+//         start_press_count = 0;
+//     }
 
-    //clearTimeout(start_btn_timer);
-    //start_btn_timer = setTimeout(req_start_btn, 100 + parseInt(Math.random() * 100));
-}
+//     //clearTimeout(start_btn_timer);
+//     //start_btn_timer = setTimeout(req_start_btn, 100 + parseInt(Math.random() * 100));
+// }
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-var always_tick = 0;
-var toggle_command = 1;
-setTimeout(always_watchdog, first_interval);
+// var always_tick = 0;
+// var toggle_command = 1;
+// setTimeout(always_watchdog, first_interval);
 
-function always_watchdog() {
-    // - 내부온도 60도 이상 순환팬과 열교환기 냉각팬, 펌프 온
-    // - 내부온도 60도 미만 순환팬과 열교환기 냉각팬, 펌프 오프
+// function always_watchdog() {
+//     // - 내부온도 60도 이상 순환팬과 열교환기 냉각팬, 펌프 온
+//     // - 내부온도 60도 미만 순환팬과 열교환기 냉각팬, 펌프 오프
 
-    if(parseFloat(dry_data_block.internal_temp) < 30.0) {
-        // 순환팬 오프
-        // 열교환기 냉각팬 오프
+//     if(parseFloat(dry_data_block.internal_temp) < 30.0) {
+//         // 순환팬 오프
+//         // 열교환기 냉각팬 오프
 
-        set_fan(TURN_OFF);
-    }
-    else if(parseFloat(dry_data_block.internal_temp) >= 30.0) {
-        // 순환팬 온
-        // 열교환기 냉각팬 온
+//         set_fan(TURN_OFF);
+//     }
+//     else if(parseFloat(dry_data_block.internal_temp) >= 30.0) {
+//         // 순환팬 온
+//         // 열교환기 냉각팬 온
 
-        set_fan(TURN_ON);
-    }
+//         set_fan(TURN_ON);
+//     }
 
-    setTimeout(always_watchdog, always_interval);
-}
+//     setTimeout(always_watchdog, always_interval);
+// }
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-setTimeout(lcd_display_watchdog, display_interval);
+// setTimeout(lcd_display_watchdog, display_interval);
 
-function lcd_display_watchdog() {
-    if(dry_data_block.state == 'DEBUG') {
-        setTimeout(print_lcd_state, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_loadcell_factor, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_debug_message, parseInt(Math.random() * 10));
-    }
-    else {
-        setTimeout(print_lcd_state, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_input_door, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_output_door, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_safe_door, parseInt(Math.random() * 10));
-        setTimeout(print_lcd_elapsed_time, 0);
-        setTimeout(print_lcd_debug_message, parseInt(Math.random() * 10));
-    }
+// function lcd_display_watchdog() {
+//     if(dry_data_block.state == 'DEBUG') {
+//         setTimeout(print_lcd_state, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_loadcell_factor, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_debug_message, parseInt(Math.random() * 10));
+//     }
+//     else {
+//         setTimeout(print_lcd_state, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_input_door, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_output_door, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_safe_door, parseInt(Math.random() * 10));
+//         setTimeout(print_lcd_elapsed_time, 0);
+//         setTimeout(print_lcd_debug_message, parseInt(Math.random() * 10));
+//     }
 
-    setTimeout(lcd_display_watchdog, display_interval);
-}
+//     setTimeout(lcd_display_watchdog, display_interval);
+// }
 
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-var debug_mode_state = 'start';
+// var debug_mode_state = 'start';
 
-//setTimeout(core_watchdog, 2000);
+// //setTimeout(core_watchdog, 2000);
 
-setTimeout(mon_input_door, 250);
-setTimeout(mon_output_door, 250);
-setTimeout(mon_safe_door, 250);
+// setTimeout(mon_input_door, 250);
+// setTimeout(mon_output_door, 250);
+// setTimeout(mon_safe_door, 250);
 
-var input_door_once = 0;
-function mon_input_door() {
-    if (dry_data_block.input_door == DOOR_CLOSE){
-        if (input_door_once == 0) {
-            dryer_event |= EVENT_INPUT_DOOR_CLOSE;
-            input_door_once = 1;
-        }
-        setTimeout(mon_input_door, 250);
-    }
-    else if (dry_data_block.input_door == DOOR_OPEN){
-        input_door_once = 0;
-        dryer_event |= EVENT_INPUT_DOOR_OPEN;
-        setTimeout(mon_input_door, 5000);
-    }
+// var input_door_once = 0;
+// function mon_input_door() {
+//     if (dry_data_block.input_door == DOOR_CLOSE){
+//         if (input_door_once == 0) {
+//             dryer_event |= EVENT_INPUT_DOOR_CLOSE;
+//             input_door_once = 1;
+//         }
+//         setTimeout(mon_input_door, 250);
+//     }
+//     else if (dry_data_block.input_door == DOOR_OPEN){
+//         input_door_once = 0;
+//         dryer_event |= EVENT_INPUT_DOOR_OPEN;
+//         setTimeout(mon_input_door, 5000);
+//     }
 
-}
+// }
 
-var output_door_once = 0;
-function mon_output_door() {
-    if (dry_data_block.output_door == DOOR_CLOSE){
-        if (output_door_once == 0) {
-            dryer_event |= EVENT_OUTPUT_DOOR_CLOSE;
-            output_door_once = 1;
-        }
-        setTimeout(mon_output_door, 250);
-    }
-    else if (dry_data_block.output_door == DOOR_OPEN){
-        output_door_once = 0;
-        dryer_event |= EVENT_OUTPUT_DOOR_OPEN;
-        setTimeout(mon_output_door, 5000);
-    }
-}
+// var output_door_once = 0;
+// function mon_output_door() {
+//     if (dry_data_block.output_door == DOOR_CLOSE){
+//         if (output_door_once == 0) {
+//             dryer_event |= EVENT_OUTPUT_DOOR_CLOSE;
+//             output_door_once = 1;
+//         }
+//         setTimeout(mon_output_door, 250);
+//     }
+//     else if (dry_data_block.output_door == DOOR_OPEN){
+//         output_door_once = 0;
+//         dryer_event |= EVENT_OUTPUT_DOOR_OPEN;
+//         setTimeout(mon_output_door, 5000);
+//     }
+// }
 
-var safe_door_once = 0;
-function mon_safe_door() {
-    if (dry_data_block.safe_door == DOOR_CLOSE){
-        if (safe_door_once == 0) {
-            dryer_event |= EVENT_SAFE_DOOR_CLOSE;
-            safe_door_once = 1;
-        }
-        setTimeout(mon_safe_door, 250);
-    }
-    else if (dry_data_block.input_door == DOOR_OPEN){
-        safe_door_once = 0;
-        dryer_event |= EVENT_SAFE_DOOR_OPEN;
-        setTimeout(mon_safe_door, 5000);
-    }
-}
+// var safe_door_once = 0;
+// function mon_safe_door() {
+//     if (dry_data_block.safe_door == DOOR_CLOSE){
+//         if (safe_door_once == 0) {
+//             dryer_event |= EVENT_SAFE_DOOR_CLOSE;
+//             safe_door_once = 1;
+//         }
+//         setTimeout(mon_safe_door, 250);
+//     }
+//     else if (dry_data_block.input_door == DOOR_OPEN){
+//         safe_door_once = 0;
+//         dryer_event |= EVENT_SAFE_DOOR_OPEN;
+//         setTimeout(mon_safe_door, 5000);
+//     }
+// }
 
-setTimeout(heat_watchdog, 1000);
+// setTimeout(heat_watchdog, 1000);
 
-function heat_watchdog() {
-    if (dry_data_block.state == 'INPUT'){
-        set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-        set_stirrer(TURN_OFF);
-    }
-    else if(dry_data_block.state == 'DEBUG') {
-        if (debug_mode_state == 'start') {
-            console.log("Start zero point");
+// function heat_watchdog() {
+//     if (dry_data_block.state == 'INPUT'){
+//         set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//         set_stirrer(TURN_OFF);
+//     }
+//     else if(dry_data_block.state == 'DEBUG') {
+//         if (debug_mode_state == 'start') {
+//             console.log("Start zero point");
 
-            dry_data_block.debug_message = 'Start zero point';
-            pre_debug_message = '';
+//             dry_data_block.debug_message = 'Start zero point';
+//             pre_debug_message = '';
 
-            req_zero_point();
+//             req_zero_point();
 
-            debug_mode_state = 'start_waiting';
+//             debug_mode_state = 'start_waiting';
 
-            //setTimeout(core_watchdog, normal_interval);
-        }
-        else if (debug_mode_state == 'put_on') {
-            dry_data_block.debug_message = 'Put weight on - ' + dry_data_block.loadcell_ref_weight;
-            pre_debug_message = '';
+//             //setTimeout(core_watchdog, normal_interval);
+//         }
+//         else if (debug_mode_state == 'put_on') {
+//             dry_data_block.debug_message = 'Put weight on - ' + dry_data_block.loadcell_ref_weight;
+//             pre_debug_message = '';
 
-            debug_mode_state = 'put_on_waiting';
+//             debug_mode_state = 'put_on_waiting';
 
-            //setTimeout(core_watchdog, normal_interval);
-        }
-        else if (debug_mode_state == 'complete') {
-            dry_data_block.debug_message = 'Complete zero point';
-            pre_debug_message = '';
+//             //setTimeout(core_watchdog, normal_interval);
+//         }
+//         else if (debug_mode_state == 'complete') {
+//             dry_data_block.debug_message = 'Complete zero point';
+//             pre_debug_message = '';
 
-            debug_mode_state = 'completed';
+//             debug_mode_state = 'completed';
 
-            var obj = {};
-            obj.loadcell_factor = dry_data_block.loadcell_factor;
-            obj.correlation_value = dry_data_block.correlation_value;
-            send_to_Mobius(zero_mission_name, obj);
-        }
-        else {
-        }
-    }
-    else if (dry_data_block.state == 'HEAT'){
-        dry_data_block.elapsed_time++;
+//             var obj = {};
+//             obj.loadcell_factor = dry_data_block.loadcell_factor;
+//             obj.correlation_value = dry_data_block.correlation_value;
+//             send_to_Mobius(zero_mission_name, obj);
+//         }
+//         else {
+//         }
+//     }
+//     else if (dry_data_block.state == 'HEAT'){
+//         dry_data_block.elapsed_time++;
 
-        if(parseFloat(dry_data_block.external_temp) < parseFloat(dry_data_block.ref_external_temp) && parseFloat(dry_data_block.internal_temp) < parseFloat(dry_data_block.ref_internal_temp)) {
-            set_heater(TURN_ON, TURN_ON, TURN_ON);
-            set_stirrer(TURN_ON);
-        }
-        else {
-            set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            set_stirrer(TURN_ON);
-        }
+//         if(parseFloat(dry_data_block.external_temp) < parseFloat(dry_data_block.ref_external_temp) && parseFloat(dry_data_block.internal_temp) < parseFloat(dry_data_block.ref_internal_temp)) {
+//             set_heater(TURN_ON, TURN_ON, TURN_ON);
+//             set_stirrer(TURN_ON);
+//         }
+//         else {
+//             set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             set_stirrer(TURN_ON);
+//         }
 
-        cur_weight = parseFloat(dry_data_block.cur_weight) - parseFloat(dry_data_block.pre_weight)
+//         cur_weight = parseFloat(dry_data_block.cur_weight) - parseFloat(dry_data_block.pre_weight)
 
-        if (cur_weight <= parseFloat(dry_data_block.tar_weight3) || dry_data_block.elapsed_time > (parseInt(dry_data_block.ref_elapsed_time)*60*60)) {
-            dry_data_block.cum_weight += dry_data_block.ref_weight;
+//         if (cur_weight <= parseFloat(dry_data_block.tar_weight3) || dry_data_block.elapsed_time > (parseInt(dry_data_block.ref_elapsed_time)*60*60)) {
+//             dry_data_block.cum_weight += dry_data_block.ref_weight;
 
-            //console.log('heater 0');
+//             //console.log('heater 0');
 
-            dry_data_block.ref_weight = 0.0;
-            dry_data_block.pre_weight = 0.0;
-            dry_data_block.tar_weight1 = 0.0;
-            dry_data_block.tar_weight2 = 0.0;
-            dry_data_block.tar_weight3 = 0.0;
+//             dry_data_block.ref_weight = 0.0;
+//             dry_data_block.pre_weight = 0.0;
+//             dry_data_block.tar_weight1 = 0.0;
+//             dry_data_block.tar_weight2 = 0.0;
+//             dry_data_block.tar_weight3 = 0.0;
 
-            fs.writeFileSync('ddb.json', JSON.stringify(dry_data_block, null, 4), 'utf8');
+//             fs.writeFileSync('ddb.json', JSON.stringify(dry_data_block, null, 4), 'utf8');
 
-            dry_data_block.state = 'END';
-            pre_state = '';
+//             dry_data_block.state = 'END';
+//             pre_state = '';
 
-            dry_data_block.my_sortie_name = 'disarm';
-            send_to_Mobius(my_cnt_name, dry_data_block);
+//             dry_data_block.my_sortie_name = 'disarm';
+//             send_to_Mobius(my_cnt_name, dry_data_block);
 
-            set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            set_stirrer(TURN_OFF);
+//             set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             set_stirrer(TURN_OFF);
 
-            set_buzzer();
+//             set_buzzer();
 
-            my_sortie_name = 'disarm';
-            my_cnt_name = my_parent_cnt_name + '/' + my_sortie_name;
+//             my_sortie_name = 'disarm';
+//             my_cnt_name = my_parent_cnt_name + '/' + my_sortie_name;
 
-            dryer_event_2 |= EVENT_HEAT_COMPLETE;
-        }
-    }
-    else if (dry_data_block.state == 'EXHAUST'){
-        if (dry_data_block.cur_weight <= 0.5){
-            dryer_event_2 |= EVENT_EXHAUST_COMPLETE;
-        }
-    }
-    else if (dry_data_block.state == 'TARGETING') {
-        dry_data_block.elapsed_time = 0;
+//             dryer_event_2 |= EVENT_HEAT_COMPLETE;
+//         }
+//     }
+//     else if (dry_data_block.state == 'EXHAUST'){
+//         if (dry_data_block.cur_weight <= 0.5){
+//             dryer_event_2 |= EVENT_EXHAUST_COMPLETE;
+//         }
+//     }
+//     else if (dry_data_block.state == 'TARGETING') {
+//         dry_data_block.elapsed_time = 0;
         
-        set_stirrer(TURN_ON);
-        targeting_tick_count++;
-        if(targeting_tick_count >= (60*6)) {
-            dry_data_block.ref_weight = dry_data_block.ref_weight + dry_data_block.cur_weight - dry_data_block.pre_weight;
+//         set_stirrer(TURN_ON);
+//         targeting_tick_count++;
+//         if(targeting_tick_count >= (60*6)) {
+//             dry_data_block.ref_weight = dry_data_block.ref_weight + dry_data_block.cur_weight - dry_data_block.pre_weight;
 
-            dry_data_block.tar_weight1 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.60).toFixed(1));
-            dry_data_block.tar_weight2 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.30).toFixed(1));
-            dry_data_block.tar_weight3 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.10).toFixed(1));
+//             dry_data_block.tar_weight1 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.60).toFixed(1));
+//             dry_data_block.tar_weight2 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.30).toFixed(1));
+//             dry_data_block.tar_weight3 = parseFloat(parseFloat(dry_data_block.ref_weight * 0.10).toFixed(1));
 
-            fs.writeFileSync('ddb.json', JSON.stringify(dry_data_block, null, 4), 'utf8');
+//             fs.writeFileSync('ddb.json', JSON.stringify(dry_data_block, null, 4), 'utf8');
 
-            console.log(dry_data_block.state);
-            dry_data_block.state = 'HEAT';
-            pre_state = '';
-            console.log('->' + dry_data_block.state);
+//             console.log(dry_data_block.state);
+//             dry_data_block.state = 'HEAT';
+//             pre_state = '';
+//             console.log('->' + dry_data_block.state);
 
-            dry_data_block.my_sortie_name = moment().utc().format('YYYY_MM_DD_T_HH');
-            send_to_Mobius(my_cnt_name, dry_data_block);
+//             dry_data_block.my_sortie_name = moment().utc().format('YYYY_MM_DD_T_HH');
+//             send_to_Mobius(my_cnt_name, dry_data_block);
 
-            dry_data_block.debug_message = ' ';
-            pre_debug_message = '';
+//             dry_data_block.debug_message = ' ';
+//             pre_debug_message = '';
 
-            set_heater(TURN_ON, TURN_ON, TURN_ON);
-            set_stirrer(TURN_ON);
+//             set_heater(TURN_ON, TURN_ON, TURN_ON);
+//             set_stirrer(TURN_ON);
 
-            my_sortie_name = moment().utc().format('YYYY_MM_DD_T_HH');
-            my_cnt_name = my_parent_cnt_name + '/' + my_sortie_name;
-            sh_adn.crtct(my_parent_cnt_name + '?rcn=0', my_sortie_name, 0, function (rsc, res_body, count) {
-            });
-        }
-    }
+//             my_sortie_name = moment().utc().format('YYYY_MM_DD_T_HH');
+//             my_cnt_name = my_parent_cnt_name + '/' + my_sortie_name;
+//             sh_adn.crtct(my_parent_cnt_name + '?rcn=0', my_sortie_name, 0, function (rsc, res_body, count) {
+//             });
+//         }
+//     }
     
-    setTimeout(heat_watchdog, 1000);
-}
+//     setTimeout(heat_watchdog, 1000);
+// }
 
-function do_before_input() {
-    dry_data_block.input_door = 0;
-    dry_data_block.output_door = 0;
-    dry_data_block.safe_door = 0;
+// function do_before_input() {
+//     dry_data_block.input_door = 0;
+//     dry_data_block.output_door = 0;
+//     dry_data_block.safe_door = 0;
 
-    sh_adn.rtvct(zero_mission_name+'/la', 0, function (rsc, res_body, count) {
-        if (rsc == 2000) {
-            var zero_obj = res_body[Object.keys(res_body)[0]].con;
+//     sh_adn.rtvct(zero_mission_name+'/la', 0, function (rsc, res_body, count) {
+//         if (rsc == 2000) {
+//             var zero_obj = res_body[Object.keys(res_body)[0]].con;
 
-            dry_data_block.loadcell_factor = zero_obj.loadcell_factor;
-            dry_data_block.correlation_value = zero_obj.correlation_value;
+//             dry_data_block.loadcell_factor = zero_obj.loadcell_factor;
+//             dry_data_block.correlation_value = zero_obj.correlation_value;
 
-            if(dry_mqtt_client != null) {
-                var msg_obj = {};
-                msg_obj.val = dry_data_block.loadcell_factor;
-                msg_obj.val2 = dry_data_block.correlation_value;
-                dry_mqtt_client.publish('/set_zero_point', JSON.stringify(msg_obj));
-            }
-        }
-    });
+//             if(air_mqtt_client != null) {
+//                 var msg_obj = {};
+//                 msg_obj.val = dry_data_block.loadcell_factor;
+//                 msg_obj.val2 = dry_data_block.correlation_value;
+//                 air_mqtt_client.publish('/set_zero_point', JSON.stringify(msg_obj));
+//             }
+//         }
+//     });
 
-    dry_data_block.debug_message = ' ';
-    pre_debug_message = '';
-    pre_input_door = -1;
-    pre_output_door = -1;
-    pre_safe_door = -1;
-    pre_elapsed_time = -1;
-    pre_cur_weight = 9999;
+//     dry_data_block.debug_message = ' ';
+//     pre_debug_message = '';
+//     pre_input_door = -1;
+//     pre_output_door = -1;
+//     pre_safe_door = -1;
+//     pre_elapsed_time = -1;
+//     pre_cur_weight = 9999;
 
-    dry_data_block.cur_weight = -0.1;
-    dry_data_block.ref_weight = 0.0;
-    dry_data_block.pre_weight = 0.0;
-    dry_data_block.tar_weight1 = 0.0;
-    dry_data_block.tar_weight2 = 0.0;
-    dry_data_block.tar_weight3 = 0.0;
+//     dry_data_block.cur_weight = -0.1;
+//     dry_data_block.ref_weight = 0.0;
+//     dry_data_block.pre_weight = 0.0;
+//     dry_data_block.tar_weight1 = 0.0;
+//     dry_data_block.tar_weight2 = 0.0;
+//     dry_data_block.tar_weight3 = 0.0;
 
-    pre_cur_weight = dry_data_block.cur_weight;
+//     pre_cur_weight = dry_data_block.cur_weight;
     
-    console.log(dry_data_block.state);
-    dry_data_block.state = 'INPUT';
-    pre_state = '';
-    console.log('->' + dry_data_block.state);
+//     console.log(dry_data_block.state);
+//     dry_data_block.state = 'INPUT';
+//     pre_state = '';
+//     console.log('->' + dry_data_block.state);
 
-    set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-    set_stirrer(TURN_OFF);
-    set_lift(TURN_BACK);
-    set_crusher(TURN_OFF);
-    set_cleaning_pump(TURN_OFF);
+//     set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//     set_stirrer(TURN_OFF);
+//     set_lift(TURN_BACK);
+//     set_crusher(TURN_OFF);
+//     set_cleaning_pump(TURN_OFF);
     
-    set_buzzer();
-}
+//     set_buzzer();
+// }
 
-do_before_input();
+// do_before_input();
 
-setTimeout(dryer_event_handler, 100);
+// setTimeout(dryer_event_handler, 100);
 
-function dryer_event_handler() {
-    if (dryer_event & EVENT_INPUT_DOOR_OPEN) {
-        dryer_event &= ~EVENT_INPUT_DOOR_OPEN;
-        if (dry_data_block.state != 'DEBUG') {
-            // console.log("dryer event handler door open");
-            dry_data_block.debug_message = 'Close input door';
-            set_buzzer();
-            //set_stirrer(TURN_OFF);
-            //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-        }
-    } 
-    else if (dryer_event & EVENT_INPUT_DOOR_CLOSE) {
-        dryer_event &= ~EVENT_INPUT_DOOR_CLOSE;
-        if (dry_data_block.state != 'DEBUG') {
-            dry_data_block.debug_message = '                ';
-        }
-    }
+// function dryer_event_handler() {
+//     if (dryer_event & EVENT_INPUT_DOOR_OPEN) {
+//         dryer_event &= ~EVENT_INPUT_DOOR_OPEN;
+//         if (dry_data_block.state != 'DEBUG') {
+//             // console.log("dryer event handler door open");
+//             dry_data_block.debug_message = 'Close input door';
+//             set_buzzer();
+//             //set_stirrer(TURN_OFF);
+//             //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//         }
+//     } 
+//     else if (dryer_event & EVENT_INPUT_DOOR_CLOSE) {
+//         dryer_event &= ~EVENT_INPUT_DOOR_CLOSE;
+//         if (dry_data_block.state != 'DEBUG') {
+//             dry_data_block.debug_message = '                ';
+//         }
+//     }
 
-    else if (dryer_event & EVENT_OUTPUT_DOOR_OPEN) {
-        dryer_event &= ~EVENT_OUTPUT_DOOR_OPEN;
-        if (dry_data_block.state == 'DEBUG') {
-            //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            //set_stirrer(TURN_ON);
-        } 
-        else if (dry_data_block.state == 'EXHAUST') {
-            //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            set_stirrer(TURN_ON);
-        } 
-        else {
-            dry_data_block.debug_message = 'Close output door';
-            set_buzzer();
-            set_stirrer(TURN_OFF);
-            //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-        }
-    } 
-    else if (dryer_event & EVENT_OUTPUT_DOOR_CLOSE) {
-        dryer_event &= ~EVENT_OUTPUT_DOOR_CLOSE;
-        if (dry_data_block.state != 'DEBUG') {
-            dry_data_block.debug_message = '                ';
-        }
-    }
+//     else if (dryer_event & EVENT_OUTPUT_DOOR_OPEN) {
+//         dryer_event &= ~EVENT_OUTPUT_DOOR_OPEN;
+//         if (dry_data_block.state == 'DEBUG') {
+//             //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             //set_stirrer(TURN_ON);
+//         } 
+//         else if (dry_data_block.state == 'EXHAUST') {
+//             //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             set_stirrer(TURN_ON);
+//         } 
+//         else {
+//             dry_data_block.debug_message = 'Close output door';
+//             set_buzzer();
+//             set_stirrer(TURN_OFF);
+//             //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//         }
+//     } 
+//     else if (dryer_event & EVENT_OUTPUT_DOOR_CLOSE) {
+//         dryer_event &= ~EVENT_OUTPUT_DOOR_CLOSE;
+//         if (dry_data_block.state != 'DEBUG') {
+//             dry_data_block.debug_message = '                ';
+//         }
+//     }
 
-    else if (dryer_event & EVENT_SAFE_DOOR_OPEN) {
-        dryer_event &= ~EVENT_SAFE_DOOR_OPEN;
-        if (dry_data_block.state != 'DEBUG') {
-            dry_data_block.debug_message = 'Close safe door';
-            set_buzzer();
-        }
-    } 
-    else if (dryer_event & EVENT_SAFE_DOOR_CLOSE) {
-        dryer_event &= ~EVENT_SAFE_DOOR_CLOSE;
-        if (dry_data_block.state != 'DEBUG') {
-            dry_data_block.debug_message = '                ';
-        }
-    }
+//     else if (dryer_event & EVENT_SAFE_DOOR_OPEN) {
+//         dryer_event &= ~EVENT_SAFE_DOOR_OPEN;
+//         if (dry_data_block.state != 'DEBUG') {
+//             dry_data_block.debug_message = 'Close safe door';
+//             set_buzzer();
+//         }
+//     } 
+//     else if (dryer_event & EVENT_SAFE_DOOR_CLOSE) {
+//         dryer_event &= ~EVENT_SAFE_DOOR_CLOSE;
+//         if (dry_data_block.state != 'DEBUG') {
+//             dry_data_block.debug_message = '                ';
+//         }
+//     }
 
-    else if (dryer_event_2 & EVENT_HEAT_COMPLETE) {
-        dryer_event_2 &= ~EVENT_HEAT_COMPLETE;
-        if (dry_data_block.state == 'HEAT') {
-            dry_data_block.debug_message = 'HEAT complete';
+//     else if (dryer_event_2 & EVENT_HEAT_COMPLETE) {
+//         dryer_event_2 &= ~EVENT_HEAT_COMPLETE;
+//         if (dry_data_block.state == 'HEAT') {
+//             dry_data_block.debug_message = 'HEAT complete';
 
-            set_buzzer();
-            set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            set_stirrer(TURN_OFF);
+//             set_buzzer();
+//             set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             set_stirrer(TURN_OFF);
 
-            dry_data_block.state = 'END';
-            pre_state = '';
+//             dry_data_block.state = 'END';
+//             pre_state = '';
 
-        }
-        dryer_event_2 |= EVENT_END_ACTION;
-    }
+//         }
+//         dryer_event_2 |= EVENT_END_ACTION;
+//     }
 
-    else if (dryer_event & EVENT_START_BUTTON) {
-        dryer_event &= ~EVENT_START_BUTTON;
-        // dry_data_block.start_btn = 1;
-        if (dry_data_block.state == 'INPUT') {
-            dry_data_block.debug_message = '              ';
+//     else if (dryer_event & EVENT_START_BUTTON) {
+//         dryer_event &= ~EVENT_START_BUTTON;
+//         // dry_data_block.start_btn = 1;
+//         if (dry_data_block.state == 'INPUT') {
+//             dry_data_block.debug_message = '              ';
             
-            //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
-            set_heater(TURN_ON, TURN_ON, TURN_ON);
-            set_stirrer(TURN_ON);
-            set_lift(TURN_OFF);
-            set_crusher(TURN_OFF);
-            set_cleaning_pump(TURN_OFF);
+//             //set_heater(TURN_OFF, TURN_OFF, TURN_OFF);
+//             set_heater(TURN_ON, TURN_ON, TURN_ON);
+//             set_stirrer(TURN_ON);
+//             set_lift(TURN_OFF);
+//             set_crusher(TURN_OFF);
+//             set_cleaning_pump(TURN_OFF);
 
-            console.log(dry_data_block.state + '->' + dry_data_block.state);
-            dry_data_block.state = 'TARGETING';
-            pre_state = '';
+//             console.log(dry_data_block.state + '->' + dry_data_block.state);
+//             dry_data_block.state = 'TARGETING';
+//             pre_state = '';
 
-            lift_seq = 0;
-            crusher_seq = 0;
+//             lift_seq = 0;
+//             crusher_seq = 0;
             
-            lifting();
-            crusher();
+//             lifting();
+//             crusher();
 
-            targeting_tick_count = 0;
+//             targeting_tick_count = 0;
 
-            dry_data_block.pre_weight = dry_data_block.cur_weight;
-        }
+//             dry_data_block.pre_weight = dry_data_block.cur_weight;
+//         }
 
-        else if (dry_data_block.state == 'DEBUG') {
-            if(debug_mode_state == 'put_on_waiting') {
+//         else if (dry_data_block.state == 'DEBUG') {
+//             if(debug_mode_state == 'put_on_waiting') {
 
-                dry_data_block.debug_message = 'Calculating';
-                pre_debug_message = '';
+//                 dry_data_block.debug_message = 'Calculating';
+//                 pre_debug_message = '';
 
-                req_calc_factor();
-            }
-        }
-    }
+//                 req_calc_factor();
+//             }
+//         }
+//     }
     
-    else if(dryer_event & EVENT_START_BTN_LONG) {
-        dryer_event &= ~EVENT_START_BTN_LONG;
-        // dry_data_block.start_btn = 2;
-        if (dry_data_block.state == 'INPUT') {
-            dry_data_block.debug_message = 'Reset the catalyst';
-            pre_debug_message = '';
-            set_buzzer();
+//     else if(dryer_event & EVENT_START_BTN_LONG) {
+//         dryer_event &= ~EVENT_START_BTN_LONG;
+//         // dry_data_block.start_btn = 2;
+//         if (dry_data_block.state == 'INPUT') {
+//             dry_data_block.debug_message = 'Reset the catalyst';
+//             pre_debug_message = '';
+//             set_buzzer();
 
-            dry_data_block.cum_weight = 0;
-        }
-        else if (dry_data_block.state == 'DEBUG'){
-            dry_data_block.debug_message = 'Being Update';
-            var tas_dryer = spawn('sh', ['./update.sh']);
-            tas_dryer.stdout.on('data', function(data) {
-                console.log('Being Update');
-                console.log('stdout: ' + data);
-            });
-            tas_dryer.on('exit', function(code) {
-                console.log('exit: ' + code);
-            });
-            tas_dryer.on('error', function(code) {
-                console.log('error: ' + code);
-            });
-        }
-     }
+//             dry_data_block.cum_weight = 0;
+//         }
+//         else if (dry_data_block.state == 'DEBUG'){
+//             dry_data_block.debug_message = 'Being Update';
+//             var tas_dryer = spawn('sh', ['./update.sh']);
+//             tas_dryer.stdout.on('data', function(data) {
+//                 console.log('Being Update');
+//                 console.log('stdout: ' + data);
+//             });
+//             tas_dryer.on('exit', function(code) {
+//                 console.log('exit: ' + code);
+//             });
+//             tas_dryer.on('error', function(code) {
+//                 console.log('error: ' + code);
+//             });
+//         }
+//      }
 
-    else if (dryer_event_2 & EVENT_DEBUG_BUTTON_PRESS) {
-        dryer_event_2 &= ~EVENT_DEBUG_BUTTON_PRESS;
-        if (dry_data_block.state == 'INPUT') {
-            pre_cur_weight = dry_data_block.cur_weight;
+//     else if (dryer_event_2 & EVENT_DEBUG_BUTTON_PRESS) {
+//         dryer_event_2 &= ~EVENT_DEBUG_BUTTON_PRESS;
+//         if (dry_data_block.state == 'INPUT') {
+//             pre_cur_weight = dry_data_block.cur_weight;
 
-            if (dry_data_block.debug_mode == 1) {
-                debug_mode_state = 'start';
+//             if (dry_data_block.debug_mode == 1) {
+//                 debug_mode_state = 'start';
 
-                console.log(dry_data_block.state);
-                dry_data_block.state = 'DEBUG';
-                pre_state = '';
-                console.log('->' + dry_data_block.state);
+//                 console.log(dry_data_block.state);
+//                 dry_data_block.state = 'DEBUG';
+//                 pre_state = '';
+//                 console.log('->' + dry_data_block.state);
 
-                set_buzzer();
-            }
-            else {
-                pre_input_door = -1;
-                pre_output_door = -1;
-                pre_safe_door = -1;
-                pre_cur_weight = 9999;
-            }
-        }
-    }
+//                 set_buzzer();
+//             }
+//             else {
+//                 pre_input_door = -1;
+//                 pre_output_door = -1;
+//                 pre_safe_door = -1;
+//                 pre_cur_weight = 9999;
+//             }
+//         }
+//     }
     
-    else if (dryer_event_2 & EVENT_DEBUG_BUTTON_RELEASE) {
-        dryer_event_2 &= ~EVENT_DEBUG_BUTTON_RELEASE;
-        if (dry_data_block.state == 'DEBUG'){
-            if (dry_data_block.debug_mode == 0) {
-                do_before_input();
-            }
-        }
-    }
+//     else if (dryer_event_2 & EVENT_DEBUG_BUTTON_RELEASE) {
+//         dryer_event_2 &= ~EVENT_DEBUG_BUTTON_RELEASE;
+//         if (dry_data_block.state == 'DEBUG'){
+//             if (dry_data_block.debug_mode == 0) {
+//                 do_before_input();
+//             }
+//         }
+//     }
 
-    else if (dryer_event_2 & EVENT_EXHAUST_COMPLETE) {
-        dryer_event_2 &= ~EVENT_EXHAUST_COMPLETE;
-        if (dry_data_block.state == 'EXHAUST') {
-            do_before_input();
-        }
-    }
+//     else if (dryer_event_2 & EVENT_EXHAUST_COMPLETE) {
+//         dryer_event_2 &= ~EVENT_EXHAUST_COMPLETE;
+//         if (dry_data_block.state == 'EXHAUST') {
+//             do_before_input();
+//         }
+//     }
 
-    else if (dryer_event_2 & EVENT_END_ACTION) {
-        dryer_event_2 &= ~EVENT_END_ACTION;
-        if (dry_data_block.state == 'END') {
-            do_before_input();
-        }
-    }
+//     else if (dryer_event_2 & EVENT_END_ACTION) {
+//         dryer_event_2 &= ~EVENT_END_ACTION;
+//         if (dry_data_block.state == 'END') {
+//             do_before_input();
+//         }
+//     }
 
-    setTimeout(dryer_event_handler, 100);
-}
+//     setTimeout(dryer_event_handler, 100);
+// }
 
-setTimeout(check_cum_ref_weight, 20000);
+// setTimeout(check_cum_ref_weight, 20000);
 
-function check_cum_ref_weight() {
-    if (dry_data_block.state == 'INPUT') {
-        if (dry_data_block.cum_weight > dry_data_block.cum_ref_weight) {
-            dry_data_block.debug_message = 'Exchange catalyst';
-            pre_debug_message = '';
-            set_buzzer();
+// function check_cum_ref_weight() {
+//     if (dry_data_block.state == 'INPUT') {
+//         if (dry_data_block.cum_weight > dry_data_block.cum_ref_weight) {
+//             dry_data_block.debug_message = 'Exchange catalyst';
+//             pre_debug_message = '';
+//             set_buzzer();
             
-            dry_data_block.state = 'EXHAUST'
-            pre_state = '';
-        }
-    }
-    setTimeout(check_cum_ref_weight, 20000);
-}
+//             dry_data_block.state = 'EXHAUST'
+//             pre_state = '';
+//         }
+//     }
+//     setTimeout(check_cum_ref_weight, 20000);
+// }
 
 
-var input_door_delay_count = 0;
-var output_door_delay_count = 0;
-var safe_door_delay_count = 0;
-var exception_delay_count = 0;
+// var input_door_delay_count = 0;
+// var output_door_delay_count = 0;
+// var safe_door_delay_count = 0;
+// var exception_delay_count = 0;
 
-var lift_seq = 0;
-function lifting() {
-    if(lift_seq == 0) {
-        set_lift(TURN_OFF);
+// var lift_seq = 0;
+// function lifting() {
+//     if(lift_seq == 0) {
+//         set_lift(TURN_OFF);
 
-        lift_seq = 1;
-        setTimeout(lifting, 10);
-    }
-    else if(lift_seq == 1) {
-        set_lift(TURN_ON);
+//         lift_seq = 1;
+//         setTimeout(lifting, 10);
+//     }
+//     else if(lift_seq == 1) {
+//         set_lift(TURN_ON);
 
-        lift_seq = 2;
-        setTimeout(lifting, 20000);
-    }
-    else if(lift_seq == 2) {
-        set_lift(TURN_OFF);
+//         lift_seq = 2;
+//         setTimeout(lifting, 20000);
+//     }
+//     else if(lift_seq == 2) {
+//         set_lift(TURN_OFF);
 
-        lift_seq = 3;
-        setTimeout(lifting, 10);
-    }
-    else if(lift_seq == 3) {
-        set_lift(TURN_BACK);
+//         lift_seq = 3;
+//         setTimeout(lifting, 10);
+//     }
+//     else if(lift_seq == 3) {
+//         set_lift(TURN_BACK);
 
-        lift_seq = 4;
-        setTimeout(lifting, 1000);
-    }
-    else if(lift_seq == 4) {
-        set_lift(TURN_OFF);
+//         lift_seq = 4;
+//         setTimeout(lifting, 1000);
+//     }
+//     else if(lift_seq == 4) {
+//         set_lift(TURN_OFF);
 
-        lift_seq = 5;
-        setTimeout(lifting, 10);
-    }
-    else if(lift_seq == 5) {
-        set_lift(TURN_ON);
+//         lift_seq = 5;
+//         setTimeout(lifting, 10);
+//     }
+//     else if(lift_seq == 5) {
+//         set_lift(TURN_ON);
 
-        lift_seq = 6;
-        setTimeout(lifting, 5000);
-    }
-    else if(lift_seq == 6) {
-        set_lift(TURN_OFF);
+//         lift_seq = 6;
+//         setTimeout(lifting, 5000);
+//     }
+//     else if(lift_seq == 6) {
+//         set_lift(TURN_OFF);
 
-        lift_seq = 7;
-        setTimeout(lifting, 10);
-    }
-    else if(lift_seq == 7) {
-        set_lift(TURN_BACK);
+//         lift_seq = 7;
+//         setTimeout(lifting, 10);
+//     }
+//     else if(lift_seq == 7) {
+//         set_lift(TURN_BACK);
 
-        lift_seq = 8;
-        setTimeout(lifting, 16000);
-    }
-    else if(lift_seq == 8) {
-        set_lift(TURN_OFF);
+//         lift_seq = 8;
+//         setTimeout(lifting, 16000);
+//     }
+//     else if(lift_seq == 8) {
+//         set_lift(TURN_OFF);
 
-        lift_seq = 0;
-    }
-}
-var crusher_seq = 0;
-function crusher() {
-    if(crusher_seq == 0) {
-        set_crusher(TURN_OFF);
+//         lift_seq = 0;
+//     }
+// }
+// var crusher_seq = 0;
+// function crusher() {
+//     if(crusher_seq == 0) {
+//         set_crusher(TURN_OFF);
 
-        crusher_seq = 1;
-        setTimeout(crusher, 10);
-    }
-    else if(crusher_seq == 1) {
-        set_crusher(TURN_ON);
+//         crusher_seq = 1;
+//         setTimeout(crusher, 10);
+//     }
+//     else if(crusher_seq == 1) {
+//         set_crusher(TURN_ON);
 
-        crusher_seq = 2;
-        setTimeout(crusher, 3*(60*1000));
-    }
-    else if(crusher_seq == 2) {
-        set_crusher(TURN_ON);
-        set_cleaning_pump(TURN_ON);
+//         crusher_seq = 2;
+//         setTimeout(crusher, 3*(60*1000));
+//     }
+//     else if(crusher_seq == 2) {
+//         set_crusher(TURN_ON);
+//         set_cleaning_pump(TURN_ON);
 
-        crusher_seq = 3;
-        setTimeout(crusher, 2*(60*1000));
-    }
-    else if(crusher_seq == 3) {
-        set_crusher(TURN_OFF);
-        set_cleaning_pump(TURN_OFF);
+//         crusher_seq = 3;
+//         setTimeout(crusher, 2*(60*1000));
+//     }
+//     else if(crusher_seq == 3) {
+//         set_crusher(TURN_OFF);
+//         set_cleaning_pump(TURN_OFF);
 
-        crusher_seq = 0;
-    }
-}
+//         crusher_seq = 0;
+//     }
+// }
 
-var targeting_tick_count = 0;
-var cur_weight = 0.0;
+// var targeting_tick_count = 0;
+// var cur_weight = 0.0;
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-setTimeout(food_watchdog, 1000);
+// setTimeout(food_watchdog, 1000);
 
-function food_watchdog(){
-    //100ms동작
-    //실시간으로 변경되는 상태값 저장
+// function food_watchdog(){
+//     //100ms동작
+//     //실시간으로 변경되는 상태값 저장
 
-    internal_temp_timer = setTimeout(req_internal_temp, 1500);
-    input_door_timer = setTimeout(req_input_door, 250);
-    //output_door_timer = setTimeout(req_output_door, parseInt(Math.random()*10));
-    //safe_door_timer = setTimeout(req_safe_door, parseInt(Math.random()*10));
-    weight_timer = setTimeout(req_weight, 1500);
-    //operation_mode_timer = setTimeout(req_operation_mode, parseInt(Math.random()*10));
-    //debug_mode_timer = setTimeout(req_debug_mode, parseInt(Math.random()*10));
-    //start_btn_timer = setTimeout(req_start_btn, parseInt(Math.random()*10));
+//     internal_temp_timer = setTimeout(req_internal_temp, 1500);
+//     input_door_timer = setTimeout(req_input_door, 250);
+//     //output_door_timer = setTimeout(req_output_door, parseInt(Math.random()*10));
+//     //safe_door_timer = setTimeout(req_safe_door, parseInt(Math.random()*10));
+//     weight_timer = setTimeout(req_weight, 1500);
+//     //operation_mode_timer = setTimeout(req_operation_mode, parseInt(Math.random()*10));
+//     //debug_mode_timer = setTimeout(req_debug_mode, parseInt(Math.random()*10));
+//     //start_btn_timer = setTimeout(req_start_btn, parseInt(Math.random()*10));
 
-    //console.log('food watchdog');
-}
+//     //console.log('food watchdog');
+// }
 
-var func = {};
-func['res_zero_point'] = res_zero_point;
-func['res_calc_factor'] = res_calc_factor;
-func['res_internal_temp'] = res_internal_temp;
-func['res_input_door'] = res_input_door;
-// func['res_output_door'] = res_output_door;
-// func['res_safe_door'] = res_safe_door;
-func['res_weight'] = res_weight;
-func['res_operation_mode'] = res_operation_mode;
-func['res_debug_mode'] = res_debug_mode;
-func['res_start_btn'] = res_start_btn;
+// var func = {};
+// func['res_zero_point'] = res_zero_point;
+// func['res_calc_factor'] = res_calc_factor;
+// func['res_internal_temp'] = res_internal_temp;
+// func['res_input_door'] = res_input_door;
+// // func['res_output_door'] = res_output_door;
+// // func['res_safe_door'] = res_safe_door;
+// func['res_weight'] = res_weight;
+// func['res_operation_mode'] = res_operation_mode;
+// func['res_debug_mode'] = res_debug_mode;
+// func['res_start_btn'] = res_start_btn;

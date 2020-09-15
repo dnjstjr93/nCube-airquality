@@ -67,7 +67,6 @@ function http_request(origin, path, method, ty, bodyString, callback) {
             else if(conf.ae.bodytype == 'cbor') {
             }
             else {
-                console.log(res_body);
                 try {
                     if(res_body == '') {
                         jsonObj = {};

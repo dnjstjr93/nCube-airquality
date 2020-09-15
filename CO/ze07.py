@@ -63,7 +63,7 @@ class Ze07UartReader:
                 high = int(self.m_stack[4].hex(), 16)
                 low = int(self.m_stack[5].hex(), 16)
                 ppm = (high*256 + low) * 0.1
-                print('integer: {} ppm'.format(ppm))
+                # print('integer: {} ppm'.format(ppm))
                     
                 self.m_stack = []
                 
