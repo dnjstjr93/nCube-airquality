@@ -5,6 +5,10 @@ import ze07
 # Set HWSS ZE07-CO sensor
 co = ze07.Ze07UartReader()
 
+g_set_event = 0x00
+
+SET_FAN = 0x01
+
 co = dict()
 
 #---Parse Data----------------------------------------------------------
@@ -49,13 +53,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 
 def on_message(client, userdata, _msg):
-    global co
-
-    co_val = co.read()
-    co_dict = val_to_json(co_val)
-    print (co_dict)
-    air_client.publish("/co", co_dict)
-    
+    print("_msg: " _msg)
 #-----------------------------------------------------------------------
 if __name__ == "__main__":
     
@@ -71,4 +69,10 @@ if __name__ == "__main__":
     air_client.on_message = on_message
     air_client.connect(broker_ip, port)
 
-    air_client.loop_forever()
+    air_client.loop_start()
+
+    while True:
+        co_val = co.read()
+        co_dict = val_to_json(co_val)
+        print (co_dict)
+        air_client.publish("/co", co_dict)
