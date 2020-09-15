@@ -1,0 +1,15 @@
+{
+    "co": 0,
+    "co2": 0,
+    "tvoc": 0,
+    "mass_pm1_0": 0,
+    "mass_pm2_5": 0,
+    "mass_pm4_0": 0,
+    "mass_pm10_0": 0,
+    "number_pm0_5": 0,
+    "number_pm1_0": 0,
+    "number_pm2_5": 0,
+    "number_pm4_0": 0,
+    "number_pm10_0": 0,
+    "typical_particle_size": 0
+}

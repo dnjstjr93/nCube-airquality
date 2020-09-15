@@ -36,7 +36,7 @@ def val_to_json(val,val2=None):
 
 #---MQTT----------------------------------------------------------------
 def on_connect(client,userdata,flags, rc):
-	print('[dry_mqtt_connect] connect to ', broker_address)
+	print('[dry_mqtt_connect] connect to ', broker_ip)
 	air_client.subscribe("/co")
 
 
@@ -53,7 +53,7 @@ def on_message(client, userdata, _msg):
 
     co_val = co.read()
     co_dict = val_to_json(co_val)
-
+    print (co_dict)
     air_client.publish("/co", co_dict)
     
 #-----------------------------------------------------------------------
