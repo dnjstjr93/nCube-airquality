@@ -5,12 +5,6 @@ import ze07
 # Set HWSS ZE07-CO sensor
 co = ze07.Ze07UartReader()
 
-g_set_event = 0x00
-
-SET_FAN = 0x01
-
-co = dict()
-
 #---Parse Data----------------------------------------------------------
 def json_to_val(json_val):
 	payloadData = json.loads(json_val)
@@ -53,7 +47,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 
 def on_message(client, userdata, _msg):
-    print("_msg: " _msg)
+    print("_msg: ", _msg)
 #-----------------------------------------------------------------------
 if __name__ == "__main__":
     
