@@ -587,91 +587,17 @@ catch (e) {
 ///////////////////////////////////////////////////////////////////////////////
 // function of food dryer machine controling, sensing
 
-function get_co() {
-    if(air_mqtt_client != null) {
-        // if (pre_state != air_data_block.state) {
-        //     pre_state = air_data_block.state;
 
-        var msg_obj = {};
-        msg_obj.val = air_data_block.co;
+function get_co(val) {
+    air_data_block.co = parseFloat(parseFloat(val.toString()).toFixed(1));
 
-        air_mqtt_client.publish('/co', JSON.stringify(msg_obj));
-        // }
-    }
+    // if (pre_internal_temp != dry_data_block.internal_temp) {
+    //     pre_internal_temp = dry_data_block.internal_temp;
+    // }
+
+    // clearTimeout(internal_temp_timer);
+    // internal_temp_timer = setTimeout(req_internal_temp, 2000 + parseInt(Math.random() * 100));
 }
-
-// function print_lcd_loadcell_factor() {
-//     if(air_mqtt_client != null) {
-//         if (pre_loadcell_factor != dry_data_block.loadcell_factor) {
-//             pre_loadcell_factor = dry_data_block.loadcell_factor;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.loadcell_factor;
-//             msg_obj.val2 = dry_data_block.loadcell_ref_weight;
-//             air_mqtt_client.publish('/print_lcd_loadcell_factor', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
-
-// function print_lcd_input_door() {
-//     if(air_mqtt_client != null) {
-//         if (pre_input_door != dry_data_block.input_door) {
-//             pre_input_door = dry_data_block.input_door;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.input_door;
-//             air_mqtt_client.publish('/print_lcd_input_door', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
-
-// function print_lcd_output_door() {
-//     if(air_mqtt_client != null) {
-//         if (pre_output_door != dry_data_block.output_door) {
-//             pre_output_door = dry_data_block.output_door;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.output_door;
-//             air_mqtt_client.publish('/print_lcd_output_door', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
-
-// function print_lcd_safe_door() {
-//     if(air_mqtt_client != null) {
-//         if (pre_safe_door != dry_data_block.safe_door) {
-//             pre_safe_door = dry_data_block.safe_door;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.safe_door;
-//             air_mqtt_client.publish('/print_lcd_safe_door', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
-
-// function print_lcd_elapsed_time() {
-//     if(air_mqtt_client != null) {
-//         if (pre_elapsed_time != dry_data_block.elapsed_time) {
-//             pre_elapsed_time = dry_data_block.elapsed_time;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.elapsed_time;
-//             air_mqtt_client.publish('/print_lcd_elapsed_time', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
-
-// function print_lcd_debug_message() {
-//     if(air_mqtt_client != null) {
-//         if (pre_debug_message != dry_data_block.debug_message) {
-//             pre_debug_message = dry_data_block.debug_message;
-
-//             var msg_obj = {};
-//             msg_obj.val = dry_data_block.debug_message;
-//             air_mqtt_client.publish('/print_lcd_debug_message', JSON.stringify(msg_obj));
-//         }
-//     }
-// }
 
 // function set_solenoid(command) {
 //     if(air_mqtt_client != null) {
@@ -681,63 +607,8 @@ function get_co() {
 //     }
 // }
 
-// function set_fan(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_fan', JSON.stringify(msg_obj));
-//     }
-// }
 
-// function set_heater(command1, command2, command3) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command1;
-//         //msg_obj.val2 = command2;
-//         //msg_obj.val3 = command3;
-//         air_mqtt_client.publish('/set_heater', JSON.stringify(msg_obj));
-//     }
-// }
 
-// function set_stirrer(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_stirrer', JSON.stringify(msg_obj));
-//     }
-// }
-
-// function set_lift(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_lift', JSON.stringify(msg_obj));
-//     }
-// }
-
-// function set_crusher(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_crusher', JSON.stringify(msg_obj));
-//     }
-// }
-
-// function set_cleaning_pump(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_cleaning_pump', JSON.stringify(msg_obj));
-//     }
-// }
-
-// function set_buzzer() {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = 1;
-//         air_mqtt_client.publish('/set_buzzer', JSON.stringify(msg_obj));
-//     }
-// }
 
 // function req_zero_point() {
 //     if(air_mqtt_client != null) {
@@ -1880,8 +1751,8 @@ function get_co() {
 //     //console.log('food watchdog');
 // }
 
-// var func = {};
-// func['res_zero_point'] = res_zero_point;
+var func = {};
+func['co'] = get_co;
 // func['res_calc_factor'] = res_calc_factor;
 // func['res_internal_temp'] = res_internal_temp;
 // func['res_input_door'] = res_input_door;
