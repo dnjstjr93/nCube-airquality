@@ -25,15 +25,15 @@ class Ze07UartReader:
             self.m_stack.append(b'\xff')
             
             if b'\x04' != self.m_serial.read():
-                continue
-                # pass
+                # continue
+                pass
 
             # index 1
             self.m_stack.append(b'\0x04')
 
             if b'\x03' != self.m_serial.read():
-                continue
-                # pass
+                # continue
+                pass
 
             # index 2
             self.m_stack.append(b'\0x03')
