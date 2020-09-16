@@ -135,19 +135,22 @@ class SensorCO2():
     def continueRead(self, timeStep = 1):
         
         try:
-            while(True):
-                LocalTime = time.strftime("%Y%m%d-%H%M%S", time.localtime())
-                tmp = self.dataRead()
-                if tmp == 1: 
-                    raise ValueError
-                    break
-                # print(LocalTime, tmp)
-                print("CO2: ", tmp[0], " ppm")
-                time.sleep(timeStep)
+            # while(True):
+            LocalTime = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+            tmp = self.dataRead()
+            if tmp == 1: 
+                raise ValueError
+                # break
+                pass
+            # print(LocalTime, tmp)
+            # print("CO2: ", tmp[0], " ppm")
+            # time.sleep(timeStep)
 
         except BaseException:
             # print the err code if a terminal exit
             print(traceback.format_exc())
+        
+        return tmp[0]
 
 
     def saveStartTime(self):
@@ -161,8 +164,8 @@ class SensorCO2():
 
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     
-    # time.sleep(20)
-    sCO2 = SensorCO2()
-    sCO2.continueRead()
+#     # time.sleep(20)
+#     sCO2 = SensorCO2()
+#     sCO2.continueRead()
