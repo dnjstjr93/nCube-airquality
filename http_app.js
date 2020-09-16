@@ -39,6 +39,9 @@ const normal_interval = 100;
 const retry_interval = 2500;
 var data_interval = 2000;
 
+const TURN_ON = 1;
+const TURN_OFF = 0;
+
 var app = express();
 
 var server = null;
@@ -698,14 +701,15 @@ function res_pm(val, val2, val3, val4, val5, val6, val7, val8, val9, val10) {
     pm_timer = setTimeout(req_pm, 2000 + parseInt(Math.random() * 100));
 }
 
-// function set_dcmotor(command) {
-//     if(air_mqtt_client != null) {
-//         var msg_obj = {};
-//         msg_obj.val = command;
-//         air_mqtt_client.publish('/set_solenoid', JSON.stringify(msg_obj));
-//     }
-// }
-
+function set_dcmotor(command) {
+    if(air_mqtt_client != null) {
+        var msg_obj = {};
+        msg_obj.val = command;
+        air_mqtt_client.publish('/set_dcmotor', JSON.stringify(msg_obj));
+    }
+}
+// ///////////////////////////////////////////////////////////////////////////////
+set_dcmotor(TURN_ON);
 // ///////////////////////////////////////////////////////////////////////////////
 setTimeout(air_watchdog, 1000);
 

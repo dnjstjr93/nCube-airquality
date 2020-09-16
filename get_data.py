@@ -7,6 +7,7 @@ import adafruit_ccs811
 from lib import sensirion_sps030
 from argparse import ArgumentParser
 import logging
+import RPi.GPIO as GPIO
 
 # Set HWSS ZE07-CO sensor
 co = ze07.Ze07UartReader()
@@ -39,6 +40,14 @@ if ARGS.quiet:
     CONSOLE_LOG_LEVEL = logging.ERROR
 elif ARGS.verbose:
     CONSOLE_LOG_LEVEL = logging.DEBUG
+# Set DC motor
+motor_in1 = 6
+motor_in2 = 7
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(motor_in1, GPIO.OUT)
+GPIO.setup(motor_in2, GPIO.OUT)
+
 
 g_res_event = 0x00
 
@@ -46,11 +55,14 @@ RES_CO = 0x01
 RES_CO2 = 0x02
 RES_TVOC = 0x04
 RES_PM = 0x08
+RES_PM = 0x08
+SET_DCMOTOR = 0x10
 
 g_res_co = {}
 g_res_co2 = {}
 g_res_tvoc = {}
 g_res_pm = {}
+g_set_dcmotor_val = {}
 
 
 #---Get PM Data---------------------------------------------------------
@@ -67,6 +79,43 @@ def PM(console_log_level):
     result = str(mess).split(", ")
     
     return result
+
+#---Set DC motor control-----------------------------------------------
+def dc_motor(command):
+    if command == 1:
+        pwm1 = GPIO.PWM(motor_in1, 50)
+        pwm2 = GPIO.PWM(motor_in2, 50)
+        pwm1.start(0)
+        pwm2.start(0)
+
+        try:
+            for i in range(0, 3):
+                GPIO.output(motor_in1, GPIO.LOW)
+                for dc in range(0, 101,10):
+                    pwm2.ChangeDutyCycle(dc)
+                    time.sleep(0.1)
+                time.sleep(1)
+                for dc in range(100, -1,-10):
+                    pwm2.ChangeDutyCycle(dc)
+                    time.sleep(0.1)
+
+                GPIO.output(motor_in2, GPIO.LOW)
+                for dc in range(0, 101,10):
+                    pwm1.ChangeDutyCycle(dc)
+                    time.sleep(0.1)
+                time.sleep(1)
+                for dc in range(100, -1,-10):
+                    pwm1.ChangeDutyCycle(dc)
+                    time.sleep(0.1)
+
+        except KeyboardInterrupt:
+            pass
+
+        pwm1.stop()
+        pwm2.stop()
+        GPIO.cleanup()
+    else:
+        pass
 
 #---Parse Data----------------------------------------------------------
 def json_to_val(json_val):
@@ -93,6 +142,7 @@ def on_connect(client,userdata,flags, rc):
     air_client.subscribe("/req_co2")
     air_client.subscribe("/req_tvoc")
     air_client.subscribe("/req_pm")
+    air_client.subscribe("/set_dcmotor")
 
 
 def on_disconnect(client, userdata, flags, rc=0):
@@ -107,6 +157,7 @@ def on_message(client, userdata, _msg):
     global g_res_event
     global g_res_co
     global g_res_co2
+    global g_set_dcmotor_val
 
     if _msg.topic == '/req_co':
         g_res_event |= RES_CO
@@ -115,7 +166,11 @@ def on_message(client, userdata, _msg):
     elif _msg.topic == '/req_tvoc':
         g_res_event |= RES_TVOC
     elif _msg.topic == '/req_pm':
-        g_res_event |= RES_PM               
+        g_res_event |= RES_PM
+    elif _msg.topic == '/set_dcmotor':
+        data = _msg.payload.decode('utf-8').replace("'", '"')
+        g_set_dcmotor_val = json_to_val(data)
+        g_res_event |= SET_DCMOTOR            
 
 #-----------------------------------------------------------------------
 
@@ -157,3 +212,6 @@ if __name__ == "__main__":
             pm_dict = val_to_json(pm_val)
             # print ('pm_dict: ', pm_dict)
             air_client.publish("/res_pm", pm_dict)
+        elif g_res_event & SET_DCMOTOR:
+            g_res_event &= (~SET_DCMOTOR)
+            dc_motor(g_set_dcmotor_val)
