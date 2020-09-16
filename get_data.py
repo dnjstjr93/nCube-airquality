@@ -77,10 +77,9 @@ def json_to_val(json_val):
 
 def val_to_json(val):
     print(type(val))
-    if (str(type(val)) == "<class 'int>"):
+    if (isinstance(val, int)):
         json_val = {"val":val}
         json_val = json.dumps(json_val)
-        # json_val = {"val":val,"val2":val2}
     else:
         json_val = {"val":val[0],"val2":val[1],"val3":val[2],"val4":val[3],"val5":val[4],"val6":val[5],"val7":val[6],"val8":val[7],"val9":val[8],"val10":val[9]}
         json_val = json.dumps(json_val)
@@ -139,6 +138,7 @@ if __name__ == "__main__":
         if g_res_event & RES_CO:
             g_res_event &= (~RES_CO)
             co_val = co.read()
+            print('co_val type: ', type(co_val))
             co_dict = val_to_json(co_val)
             print (co_dict)
             air_client.publish("/res_co", co_dict)
