@@ -496,7 +496,7 @@ function air_mqtt_connect(broker_ip, port, noti_topic) {
         }
         catch (e) {
         }
-        // console.log(msg_obj);
+        console.log(msg_obj);
         // if(msg_obj.hasOwnProperty('val2')) {
         //     func[topic.replace('/', '')](msg_obj.val, msg_obj.val2);
         // }
