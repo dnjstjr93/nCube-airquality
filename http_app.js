@@ -496,7 +496,7 @@ function air_mqtt_connect(broker_ip, port, noti_topic) {
         }
         catch (e) {
         }
-
+        console.log(msg_obj);
         if(msg_obj.hasOwnProperty('val2')) {
             func[topic.replace('/', '')](msg_obj.val, msg_obj.val2);
         }
@@ -706,13 +706,12 @@ function res_pm(val, val2, val3, val4, val5, val6, val7, val8, val9, val10) {
 // }
 
 // ///////////////////////////////////////////////////////////////////////////////
-air_watchdog();
 setTimeout(air_watchdog, 1000);
 
 function air_watchdog(){
 //     //100ms동작
 //     //실시간으로 변경되는 상태값 저장
-    console.log('run air_watchdog');
+    // console.log('run air_watchdog');
     co_timer = setTimeout(req_co, 1500);
     co2_timer = setTimeout(req_co2, 1500);
     tvoc_timer = setTimeout(req_tvoc, 1500);
@@ -725,7 +724,7 @@ function air_watchdog(){
 //     //debug_mode_timer = setTimeout(req_debug_mode, parseInt(Math.random()*10));
 //     //start_btn_timer = setTimeout(req_start_btn, parseInt(Math.random()*10));
 
-//     //console.log('food watchdog');
+    console.log('air_watchdog');
 }
 
 var func = {};
