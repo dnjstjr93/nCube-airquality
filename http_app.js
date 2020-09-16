@@ -36,8 +36,8 @@ global.air_mission_name = '';
 global.my_sortie_name = 'disarm';
 
 const normal_interval = 100;
-const retry_interval = 1000;
-var data_interval = 10000;
+const retry_interval = 2500;
+var data_interval = 1000;
 
 var app = express();
 
