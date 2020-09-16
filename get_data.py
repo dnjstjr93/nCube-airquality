@@ -1,10 +1,10 @@
 import sys, os, json
 import time, board, busio
 import paho.mqtt.client as mqtt
-from CO import ze07
-from co2 import co2
+from lib import ze07
+from lib import co2
 import adafruit_ccs811
-from sensirion_sps030 import sensirion_sps030
+from lib import sensirion_sps030
 from argparse import ArgumentParser
 import logging
 
