@@ -1,10 +1,10 @@
 import sys, os, json
 import time, board, busio
 import paho.mqtt.client as mqtt
-import ze07
-import co2
+from lib import ze07
+from lib import co2
 import adafruit_ccs811
-import sensirion_sps030
+from lib import sensirion_sps030
 from argparse import ArgumentParser
 import logging
 
@@ -91,10 +91,10 @@ def val_to_json(val):
 #---MQTT----------------------------------------------------------------
 def on_connect(client,userdata,flags, rc):
     print('[dry_mqtt_connect] connect to ', broker_ip)
-    air_client.subscribe("/res_co")
-    air_client.subscribe("/res_co2")
-    air_client.subscribe("/res_tvoc")
-    air_client.subscribe("/res_pm")
+    air_client.subscribe("/req_co")
+    air_client.subscribe("/req_co2")
+    air_client.subscribe("/req_tvoc")
+    air_client.subscribe("/req_pm")
 
 
 def on_disconnect(client, userdata, flags, rc=0):
