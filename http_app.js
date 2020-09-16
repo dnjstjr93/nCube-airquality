@@ -91,7 +91,7 @@ function ready_for_notification() {
                 }
             }
         }
-        // mqtt_connect(conf.cse.host, noti_topic);
+        mqtt_connect(conf.cse.host, noti_topic);
     }
 }
 
@@ -234,7 +234,7 @@ function http_watchdog() {
     if (sh_state === 'crtae') {
         console.log('[sh_state] : ' + sh_state);
         sh_adn.crtae(conf.ae.parent, conf.ae.name, conf.ae.appid, function (status, res_body) {
-            console.log(res_body);
+            // console.log(res_body);
             if (status == 2001) {
                 ae_response_action(status, res_body, function (status, aeid) {
                     console.log('x-m2m-rsc : ' + status + ' - ' + aeid + ' <----');
@@ -559,7 +559,7 @@ function req_co() {
 
         msg_obj.val = 1;
         air_mqtt_client.publish('/req_co', JSON.stringify(msg_obj));
-        console.log(air_mqtt_client);
+        // console.log(air_mqtt_client);
 
         clearTimeout(co_timer);
         co_timer = setTimeout(req_co, 5000);
