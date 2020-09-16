@@ -497,12 +497,13 @@ function air_mqtt_connect(broker_ip, port, noti_topic) {
         catch (e) {
         }
         console.log(msg_obj);
-        if(msg_obj.hasOwnProperty('val2')) {
-            func[topic.replace('/', '')](msg_obj.val, msg_obj.val2);
-        }
-        else {
-            func[topic.replace('/', '')](msg_obj.val);
-        }
+        // if(msg_obj.hasOwnProperty('val2')) {
+        //     func[topic.replace('/', '')](msg_obj.val, msg_obj.val2);
+        // }
+        // else {
+        //     func[topic.replace('/', '')](msg_obj.val);
+        // }
+        func[topic.replace('/', '')](msg_obj.val);
     });
 
     air_mqtt_client.on('error', function (err) {
@@ -558,6 +559,7 @@ function req_co() {
 
         msg_obj.val = 1;
         air_mqtt_client.publish('/req_co', JSON.stringify(msg_obj));
+        console.log(air_mqtt_client);
 
         clearTimeout(co_timer);
         co_timer = setTimeout(req_co, 5000);
