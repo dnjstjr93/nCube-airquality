@@ -91,7 +91,7 @@ function ready_for_notification() {
                 }
             }
         }
-        //mqtt_connect(conf.cse.host, noti_topic);
+        mqtt_connect(conf.cse.host, noti_topic);
     }
 }
 
@@ -706,13 +706,13 @@ function res_pm(val, val2, val3, val4, val5, val6, val7, val8, val9, val10) {
 // }
 
 // ///////////////////////////////////////////////////////////////////////////////
-
+air_watchdog();
 setTimeout(air_watchdog, 1000);
 
 function air_watchdog(){
 //     //100ms동작
 //     //실시간으로 변경되는 상태값 저장
-
+    console.log('run air_watchdog');
     co_timer = setTimeout(req_co, 1500);
     co2_timer = setTimeout(req_co2, 1500);
     tvoc_timer = setTimeout(req_tvoc, 1500);
