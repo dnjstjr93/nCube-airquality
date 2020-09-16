@@ -65,7 +65,7 @@ def PM(console_log_level):
 
     #SPS030.logger.info("reading: %s",mess)
     result = str(mess).split(", ")
-    
+    print(type(result))
     return result
 
 #---Parse Data----------------------------------------------------------
