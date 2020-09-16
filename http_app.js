@@ -497,13 +497,12 @@ function air_mqtt_connect(broker_ip, port, noti_topic) {
         catch (e) {
         }
         console.log(msg_obj);
-        // if(msg_obj.hasOwnProperty('val2')) {
-        //     func[topic.replace('/', '')](msg_obj.val, msg_obj.val2);
-        // }
-        // else {
-        //     func[topic.replace('/', '')](msg_obj.val);
-        // }
-        func[topic.replace('/', '')](msg_obj.val);
+        if(msg_obj.hasOwnProperty('val10')) {
+            func[topic.replace('/', '')](msg_obj.val, msg_obj.val2, msg_obj.val3, msg_obj.val4, msg_obj.val5, msg_obj.val6, msg_obj.val7, msg_obj.val8, msg_obj.val9, msg_obj.val10);
+        }
+        else {
+            func[topic.replace('/', '')](msg_obj.val);
+        }
     });
 
     air_mqtt_client.on('error', function (err) {

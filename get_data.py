@@ -81,7 +81,7 @@ def val_to_json(val):
         json_val = {"val":val}
         json_val = json.dumps(json_val)
     else:
-        json_val = {"val":val[0],"val2":val[1],"val3":val[2],"val4":val[3],"val5":val[4],"val6":val[5],"val7":val[6],"val8":val[7],"val9":val[8],"val10":val[9]}
+        json_val = {"val":val[1],"val2":val[2],"val3":val[3],"val4":val[4],"val5":val[5],"val6":val[6],"val7":val[7],"val8":val[8],"val9":val[9],"val10":val[10]}
         json_val = json.dumps(json_val)
 
     return (json_val)
