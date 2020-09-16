@@ -76,7 +76,6 @@ def json_to_val(json_val):
 
 
 def val_to_json(val):
-    print(type(val))
     if (not(isinstance(val, list))):
         json_val = {"val":val}
         json_val = json.dumps(json_val)
@@ -138,25 +137,24 @@ if __name__ == "__main__":
         if g_res_event & RES_CO:
             g_res_event &= (~RES_CO)
             co_val = co.read()
-            print('co_val type: ', type(co_val))
             co_dict = val_to_json(co_val)
-            print (co_dict)
+            print ('co_dict: ', co_dict)
             air_client.publish("/res_co", co_dict)
         elif g_res_event & RES_CO2:
             g_res_event &= (~RES_CO2)
             co2_val = sCO2.continueRead()
             co2_dict = val_to_json(co2_val)
-            print (co2_dict)
+            print ('co2_dict: ', co2_dict)
             air_client.publish("/res_co2", co2_dict)
         elif g_res_event & RES_TVOC:
             g_res_event &= (~RES_TVOC)
             tvoc_val = ccs811.tvoc
             tvoc_dict = val_to_json(tvoc_val)
-            print (tvoc_dict)
+            print ('tvoc_dict: ', tvoc_dict)
             air_client.publish("/res_tvoc", tvoc_dict)
         elif g_res_event & RES_PM:
             g_res_event &= (~RES_PM)
             pm_val = PM(CONSOLE_LOG_LEVEL)
             pm_dict = val_to_json(pm_val)
-            print (pm_dict)
+            print ('pm_dict: ', pm_dict)
             air_client.publish("/res_pm", pm_dict)
