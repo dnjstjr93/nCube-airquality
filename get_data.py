@@ -122,11 +122,11 @@ def on_message(client, userdata, _msg):
 #-----------------------------------------------------------------------
 
 if __name__ == "__main__":
-
-    global air_client
     global g_res_event
     global g_res_co
     global g_res_co2
+
+    global air_client
 
     broker_ip = "localhost"
     port = 1883
