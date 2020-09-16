@@ -91,7 +91,7 @@ function ready_for_notification() {
                 }
             }
         }
-        mqtt_connect(conf.cse.host, noti_topic);
+        // mqtt_connect(conf.cse.host, noti_topic);
     }
 }
 

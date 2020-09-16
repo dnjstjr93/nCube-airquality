@@ -104,7 +104,6 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 
 def on_message(client, userdata, _msg):
-    print(_msg.topic)
     global g_res_event
     global g_res_co
     global g_res_co2
@@ -138,23 +137,23 @@ if __name__ == "__main__":
             g_res_event &= (~RES_CO)
             co_val = co.read()
             co_dict = val_to_json(co_val)
-            print ('co_dict: ', co_dict)
+            # print ('co_dict: ', co_dict)
             air_client.publish("/res_co", co_dict)
         elif g_res_event & RES_CO2:
             g_res_event &= (~RES_CO2)
             co2_val = sCO2.continueRead()
             co2_dict = val_to_json(co2_val)
-            print ('co2_dict: ', co2_dict)
+            # print ('co2_dict: ', co2_dict)
             air_client.publish("/res_co2", co2_dict)
         elif g_res_event & RES_TVOC:
             g_res_event &= (~RES_TVOC)
             tvoc_val = ccs811.tvoc
             tvoc_dict = val_to_json(tvoc_val)
-            print ('tvoc_dict: ', tvoc_dict)
+            # print ('tvoc_dict: ', tvoc_dict)
             air_client.publish("/res_tvoc", tvoc_dict)
         elif g_res_event & RES_PM:
             g_res_event &= (~RES_PM)
             pm_val = PM(CONSOLE_LOG_LEVEL)
             pm_dict = val_to_json(pm_val)
-            print ('pm_dict: ', pm_dict)
+            # print ('pm_dict: ', pm_dict)
             air_client.publish("/res_pm", pm_dict)
