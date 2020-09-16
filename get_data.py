@@ -11,7 +11,7 @@ import logging
 # Set HWSS ZE07-CO sensor
 co = ze07.Ze07UartReader()
 # Set DS-CO2-20 sensor
-sCO2 = SensorCO2()
+sCO2 = co2.SensorCO2()
 # Adafruit CCS811 TOVC sensor
 i2c = busio.I2C(board.SCL, board.SDA)
 ccs811 = adafruit_ccs811.CCS811(i2c)
