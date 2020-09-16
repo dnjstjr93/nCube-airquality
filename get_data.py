@@ -106,6 +106,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 
 def on_message(client, userdata, _msg):
+    print(_msg.topic)
     global g_res_event
     global g_res_co
     global g_res_co2
