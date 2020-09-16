@@ -1883,15 +1883,15 @@ function air_watchdog(){
 //     //start_btn_timer = setTimeout(req_start_btn, parseInt(Math.random()*10));
 
 //     //console.log('food watchdog');
-// }
+}
 
 var func = {};
 func['res_co'] = res_co;
 func['res_co2'] = res_co2;
 func['res_tvoc'] = res_tvoc;
 func['res_pm'] = res_pm;
-// // func['res_output_door'] = res_output_door;
-// // func['res_safe_door'] = res_safe_door;
+// func['res_output_door'] = res_output_door;
+// func['res_safe_door'] = res_safe_door;
 // func['res_weight'] = res_weight;
 // func['res_operation_mode'] = res_operation_mode;
 // func['res_debug_mode'] = res_debug_mode;
