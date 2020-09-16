@@ -470,11 +470,11 @@ function mqtt_connect(serverip, noti_topic) {
 var air_mqtt_client = null;
 var air_noti_topic = [];
 
-air_noti_topic.push('/co');
-air_noti_topic.push('/co2');
-air_noti_topic.push('/hcho');
-air_noti_topic.push('/pm');
-air_noti_topic.push('/tvoc');
+air_noti_topic.push('/res_co');
+air_noti_topic.push('/res_co2');
+air_noti_topic.push('/res_hcho');
+air_noti_topic.push('/res_pm');
+air_noti_topic.push('/res_tvoc');
 
 function air_mqtt_connect(broker_ip, port, noti_topic) {
     if(air_mqtt_client == null) {
@@ -587,19 +587,153 @@ catch (e) {
 ///////////////////////////////////////////////////////////////////////////////
 // function of food dryer machine controling, sensing
 
+var co_timer = null;
+function req_co() {
+    if(air_mqtt_client != null) {
+        var msg_obj = {};
 
-function get_co(val) {
-    air_data_block.co = parseFloat(parseFloat(val.toString()).toFixed(1));
+        msg_obj.val = 1;
+        air_mqtt_client.publish('/req_co', JSON.stringify(msg_obj));
 
-    // if (pre_internal_temp != dry_data_block.internal_temp) {
-    //     pre_internal_temp = dry_data_block.internal_temp;
-    // }
-
-    // clearTimeout(internal_temp_timer);
-    // internal_temp_timer = setTimeout(req_internal_temp, 2000 + parseInt(Math.random() * 100));
+        clearTimeout(co_timer);
+        co_timer = setTimeout(req_co, 5000);
+    }
+    else {
+        clearTimeout(co_timer);
+        co_timer = setTimeout(req_co, 1000 + parseInt(Math.random() * 1000));
+    }
 }
 
-// function set_solenoid(command) {
+var co2_timer = null;
+function req_co2() {
+    if(air_mqtt_client != null) {
+        var msg_obj = {};
+
+        msg_obj.val = 1;
+        air_mqtt_client.publish('/req_co2', JSON.stringify(msg_obj));
+
+        clearTimeout(co2_timer);
+        co2_timer = setTimeout(req_co2, 5000);
+    }
+    else {
+        clearTimeout(co2_timer);
+        co2_timer = setTimeout(req_co2, 1000 + parseInt(Math.random() * 1000));
+    }
+}
+
+var tvoc_timer = null;
+function req_tvoc() {
+    if(air_mqtt_client != null) {
+        var msg_obj = {};
+
+        msg_obj.val = 1;
+        air_mqtt_client.publish('/req_tvoc', JSON.stringify(msg_obj));
+
+        clearTimeout(tvoc_timer);
+        tvoc_timer = setTimeout(req_tvoc, 5000);
+    }
+    else {
+        clearTimeout(tvoc_timer);
+        tvoc_timer = setTimeout(req_tvoc, 1000 + parseInt(Math.random() * 1000));
+    }
+}
+
+var pm_timer = null;
+function req_pm() {
+    if(air_mqtt_client != null) {
+        var msg_obj = {};
+
+        msg_obj.val = 1;
+        air_mqtt_client.publish('/req_pm', JSON.stringify(msg_obj));
+
+        clearTimeout(pm_timer);
+        pm_timer = setTimeout(req_pm, 5000);
+    }
+    else {
+        clearTimeout(pm_timer);
+        pm_timer = setTimeout(req_pm, 1000 + parseInt(Math.random() * 1000));
+    }
+}
+
+function res_co(val) {
+    air_data_block.co = parseFloat(parseFloat(val.toString()).toFixed(1));
+
+    // if (pre_internal_temp != air_data_block.co) {
+    //     pre_internal_temp = air_data_block.co;
+
+    var msg_obj = {};
+    msg_obj.val = air_data_block.co;
+        // air_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
+    // }
+
+    clearTimeout(co_timer);
+    co_timer = setTimeout(req_co, 2000 + parseInt(Math.random() * 100));
+}
+
+function res_co2(val) {
+    air_data_block.co2 = parseFloat(parseFloat(val.toString()).toFixed(1));
+
+    // if (pre_internal_temp != air_data_block.co) {
+    //     pre_internal_temp = air_data_block.co;
+
+    var msg_obj = {};
+    msg_obj.val = air_data_block.co2;
+        // air_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
+    // }
+
+    clearTimeout(co2_timer);
+    co2_timer = setTimeout(req_co2, 2000 + parseInt(Math.random() * 100));
+}
+
+function res_tvoc(val) {
+    air_data_block.tvoc = parseFloat(parseFloat(val.toString()).toFixed(1));
+
+    // if (pre_internal_temp != air_data_block.co) {
+    //     pre_internal_temp = air_data_block.co;
+
+    var msg_obj = {};
+    msg_obj.val = air_data_block.tvoc;
+        // air_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
+    // }
+
+    clearTimeout(tvoc_timer);
+    tvoc_timer = setTimeout(req_tvoc, 2000 + parseInt(Math.random() * 100));
+}
+
+function res_pm(val, val2, val3, val4, val5, val6, val7, val8, val9, val10) {
+    air_data_block.mass_pm1_0 = parseFloat(parseFloat(val.toString()).toFixed(1));
+    air_data_block.mass_pm2_5 = parseFloat(parseFloat(val2.toString()).toFixed(1));
+    air_data_block.mass_pm4_0 = parseFloat(parseFloat(val3.toString()).toFixed(1));
+    air_data_block.mass_pm10_0 = parseFloat(parseFloat(val4.toString()).toFixed(1));
+    air_data_block.number_pm0_5 = parseFloat(parseFloat(val5.toString()).toFixed(1));
+    air_data_block.number_pm1_0 = parseFloat(parseFloat(val6.toString()).toFixed(1));
+    air_data_block.number_pm2_5 = parseFloat(parseFloat(val7.toString()).toFixed(1));
+    air_data_block.number_pm4_0 = parseFloat(parseFloat(val8.toString()).toFixed(1));
+    air_data_block.number_pm10_0 = parseFloat(parseFloat(val9.toString()).toFixed(1));
+    air_data_block.typical_particle_size = parseFloat(parseFloat(val10.toString()).toFixed(1));
+
+    // if (pre_internal_temp != air_data_block.co) {
+    //     pre_internal_temp = air_data_block.co;
+
+    var msg_obj = {};
+    msg_obj.val = air_data_block.mass_pm1_0;
+    msg_obj.val2 = air_data_block.mass_pm2_5;
+    msg_obj.val3 = air_data_block.mass_pm4_0;
+    msg_obj.val4 = air_data_block.mass_pm10_0;
+    msg_obj.val5 = air_data_block.number_pm0_5;
+    msg_obj.val6 = air_data_block.number_pm1_0;
+    msg_obj.val7 = air_data_block.number_pm2_5;
+    msg_obj.val8 = air_data_block.number_pm4_0;
+    msg_obj.val9 = air_data_block.number_pm10_0;
+    msg_obj.val10 = air_data_block.typical_particle_size;
+        // air_mqtt_client.publish('/print_lcd_internal_temp', JSON.stringify(msg_obj));
+    // }
+
+    clearTimeout(pm_timer);
+    pm_timer = setTimeout(req_pm, 2000 + parseInt(Math.random() * 100));
+}
+
+// function set_dcmotor(command) {
 //     if(air_mqtt_client != null) {
 //         var msg_obj = {};
 //         msg_obj.val = command;
@@ -1733,13 +1867,13 @@ function get_co(val) {
 
 // ///////////////////////////////////////////////////////////////////////////////
 
-// setTimeout(food_watchdog, 1000);
+setTimeout(air_watchdog, 1000);
 
-// function food_watchdog(){
+function air_watchdog(){
 //     //100ms동작
 //     //실시간으로 변경되는 상태값 저장
 
-//     internal_temp_timer = setTimeout(req_internal_temp, 1500);
+    co_timer = setTimeout(req_co, 1500);
 //     input_door_timer = setTimeout(req_input_door, 250);
 //     //output_door_timer = setTimeout(req_output_door, parseInt(Math.random()*10));
 //     //safe_door_timer = setTimeout(req_safe_door, parseInt(Math.random()*10));
@@ -1752,10 +1886,10 @@ function get_co(val) {
 // }
 
 var func = {};
-func['co'] = get_co;
-// func['res_calc_factor'] = res_calc_factor;
-// func['res_internal_temp'] = res_internal_temp;
-// func['res_input_door'] = res_input_door;
+func['res_co'] = res_co;
+func['res_co2'] = res_co2;
+func['res_tvoc'] = res_tvoc;
+func['res_pm'] = res_pm;
 // // func['res_output_door'] = res_output_door;
 // // func['res_safe_door'] = res_safe_door;
 // func['res_weight'] = res_weight;
