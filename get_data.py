@@ -77,7 +77,7 @@ def json_to_val(json_val):
 
 def val_to_json(val):
     print(type(val))
-    if (isinstance(val, int)):
+    if (not(isinstance(val, list))):
         json_val = {"val":val}
         json_val = json.dumps(json_val)
     else:
