@@ -42,15 +42,19 @@ def setSpeed(speed, pwm):
     pwm.ChangeDutyCycle(speed*10)
 
 GPIO.output(motor_in1, GPIO.LOW)
-    
-while True:
-        setSpeed(1, pwm1)
+try:   
+    val = 90
+    while True:
+        #for i in range(80,101,10):
+        print(val)
+        # setSpeed(1, pwm1)
+        pwm1.ChangeDutyCycle(val)
         time.sleep(10)
     
-
-pwm1.stop()
-#pwm2.stop()
-GPIO.cleanup()
+except KeyboardInterrupt:
+    pwm1.stop()
+    #pwm2.stop()
+    GPIO.cleanup()
 '''
 P_MOTA1 = 6
 P_MOTA2 = 7
