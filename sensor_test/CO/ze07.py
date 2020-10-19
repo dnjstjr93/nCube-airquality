@@ -4,6 +4,7 @@ import serial
 class Ze07UartReader:
     def __init__(self):
         self.m_serial = serial.Serial("/dev/ttyUSB5", 9600)
+        print ("connect serial port ttyUSB5")
         self.m_stack = []
         
         
@@ -21,6 +22,7 @@ class Ze07UartReader:
     
     def read(self):
         ppm = 99999
+        print (self.m_serial.read())
         if b'\xff' == self.m_serial.read():
             self.m_stack.append(b'\xff')
             
@@ -59,11 +61,11 @@ class Ze07UartReader:
                 #continue
                 pass
                 
-            #print('high:{}, low:{}'.format(self.m_stack[4], self.m_stack[5]))
+            print('high:{}, low:{}'.format(self.m_stack[4], self.m_stack[5]))
             high = int(self.m_stack[4].hex(), 16)
             low = int(self.m_stack[5].hex(), 16)
             ppm = (high*256 + low) * 0.1
-            # print('integer: {} ppm'.format(ppm))
+            print('integer: {} ppm'.format(ppm))
                 
             self.m_stack = []
             

@@ -84,38 +84,51 @@ def PM(console_log_level):
 def dc_motor(command):
     if command == 1:
         pwm1 = GPIO.PWM(motor_in1, 50)
-        pwm2 = GPIO.PWM(motor_in2, 50)
+        #pwm2 = GPIO.PWM(motor_in2, 50)
         pwm1.start(0)
-        pwm2.start(0)
-
+        #pwm2.start(0)
+        '''
         try:
-            for i in range(0, 3):
+            for i in range(0, 10):
                 GPIO.output(motor_in1, GPIO.LOW)
-                for dc in range(0, 101,10):
+                for dc in range(0, 101,5):
                     pwm2.ChangeDutyCycle(dc)
-                    time.sleep(0.1)
+                    time.sleep()
                 time.sleep(1)
-                for dc in range(100, -1,-10):
+                for dc in range(100, -1,-5):
                     pwm2.ChangeDutyCycle(dc)
                     time.sleep(0.1)
 
                 GPIO.output(motor_in2, GPIO.LOW)
-                for dc in range(0, 101,10):
+                for dc in range(0, 101,5):
                     pwm1.ChangeDutyCycle(dc)
                     time.sleep(0.1)
                 time.sleep(1)
-                for dc in range(100, -1,-10):
+                for dc in range(100, -1,-5):
                     pwm1.ChangeDutyCycle(dc)
                     time.sleep(0.1)
 
         except KeyboardInterrupt:
-            pass
+	        pass
+        '''
 
-        pwm1.stop()
-        pwm2.stop()
-        GPIO.cleanup()
+        def setSpeed(speed, pwm):
+            pwm.ChangeDutyCycle(speed*10)
+
+        GPIO.output(motor_in1, GPIO.LOW)
+        
+        for i in range(10):
+            setSpeed(1, pwm1)
+    
+
+        #pwm1.stop()
+        #pwm2.stop()
+        #GPIO.cleanup()
     else:
-        pass
+        pwm1.stop()
+        #pwm2.stop()
+        GPIO.cleanup()
+        #pass
 
 #---Parse Data----------------------------------------------------------
 def json_to_val(json_val):
@@ -192,26 +205,26 @@ if __name__ == "__main__":
             g_res_event &= (~RES_CO)
             co_val = co.read()
             co_dict = val_to_json(co_val)
-            # print ('co_dict: ', co_dict)
+            print ('co_dict: ', co_dict)
             air_client.publish("/res_co", co_dict)
         elif g_res_event & RES_CO2:
             g_res_event &= (~RES_CO2)
             co2_val = sCO2.continueRead()
             co2_dict = val_to_json(co2_val)
-            # print ('co2_dict: ', co2_dict)
+            print ('co2_dict: ', co2_dict)
             air_client.publish("/res_co2", co2_dict)
         elif g_res_event & RES_TVOC:
             g_res_event &= (~RES_TVOC)
             tvoc_val = ccs811.tvoc
             tvoc_dict = val_to_json(tvoc_val)
-            # print ('tvoc_dict: ', tvoc_dict)
+            print ('tvoc_dict: ', tvoc_dict)
             air_client.publish("/res_tvoc", tvoc_dict)
         elif g_res_event & RES_PM:
             g_res_event &= (~RES_PM)
             pm_val = PM(CONSOLE_LOG_LEVEL)
             pm_dict = val_to_json(pm_val)
-            # print ('pm_dict: ', pm_dict)
+            print ('pm_dict: ', pm_dict)
             air_client.publish("/res_pm", pm_dict)
         elif g_res_event & SET_DCMOTOR:
             g_res_event &= (~SET_DCMOTOR)
-            dc_motor(g_set_dcmotor_val)
+            # dc_motor(g_set_dcmotor_val)
