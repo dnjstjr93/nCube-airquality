@@ -19,8 +19,7 @@
         $ sudo apt-get update
         $ sudo apt-get install mosquitto
         ```
-    - Python Library
-       - mqtt
+    - paho-mqtt of python library
         ```
         $ pip3 install paho-mqtt
         ```
